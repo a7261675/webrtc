@@ -5,9 +5,15 @@ const server = require('http').Server(app).listen(port, () => {
   console.log(`Listening on port ${port}...`);
 });
 
-app.get('/', function(req, res){
+app.get('/s', function(req, res){
   res.sendFile(__dirname + '/share_screen.html');
 });
+
+app.get('/t', function(req, res){
+  res.sendFile(__dirname + '/teacher_screen.html');
+});
+
+room_list = new Array();
 
 // Socket.io
 const io = require('socket.io')(server);
@@ -28,6 +34,12 @@ io.on('connection', client => {
       client.leave(nowRoom);
     }
     client.join(room);
+
+    console.log('client_id');
+    console.log(client.id);
+    console.log(room);
+    room_list[room] = client.id;
+
     io.to(room).emit('roomBroadcast', '已有新人加入聊天室！');
   });
 
@@ -35,8 +47,8 @@ io.on('connection', client => {
     // console.log('接收資料：', message);
     const nowRoom = findNowRoom(client);
     console.log('now room: ');
-    console.log(nowRoom);
-    client.to(nowRoom).emit('peerconnectSignaling', message)
+    console.log(room_list['teacher_room']);
+    client.to('teacher_room').emit('peerconnectSignaling', message)
   });
 
   client.on('disconnect', () => {
