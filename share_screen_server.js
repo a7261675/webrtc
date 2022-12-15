@@ -51,6 +51,14 @@ io.on('connection', client => {
     client.to(nowRoom).emit('peerconnectSignaling', message)
   });
 
+  client.on('backVideoSignaling', message => {
+    // console.log('接收資料：', message);
+    const nowRoom = findNowRoom(client);
+    // console.log('now room: ');
+    // console.log(room_list['teacher_room']);
+    client.to(nowRoom).emit('backVideoSignaling', message)
+  });
+
   client.on('disconnect', () => {
     console.log(`socket 用戶離開 ${client.id}`);
   });

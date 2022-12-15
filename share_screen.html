@@ -107,24 +107,6 @@ async function initPeerConnection() {
   onAddStream();
 }
 
-
-
-// Client
-socket.on('peerconnectSignaling', async ({ desc, candidate }) => {
-  // desc 指的是 Offer 與 Answer
-  // currentRemoteDescription 代表的是最近一次連線成功的相關訊息
-  if (desc && !pc.currentRemoteDescription) {
-    console.log('desc => ', desc);
-    
-    await pc.setRemoteDescription(new RTCSessionDescription(desc));
-    createSignal(desc.type === 'answer' ? true : false);
-  } else if (candidate) {
-    // 新增對方 IP 候選位置
-    console.log('candidate =>', candidate);
-    pc.addIceCandidate(new RTCIceCandidate(candidate));
-  }
-});
-
 const btnCall = document.querySelector('.btnCall');
 
 let offer;
@@ -134,30 +116,48 @@ const signalOption = {
   offerToReceiveVideo: 1, // 是否傳送影像流給對方
 };
 
-async function createSignal(isOffer) {
+// Client
+socket.on('backVideoSignaling', async ({ desc, candidate }) => {
+  if (desc && !pc.currentRemoteDescription) {
+    console.log('desc => ', desc);
+    await pc.setRemoteDescription(new RTCSessionDescription(desc));
+    createSignal(true);
+    try {
+      if (!pc) {
+        console.log('尚未開啟視訊');
+        return;
+      }
+      // 呼叫 peerConnect 內的 createOffer / createAnswer
+      offer = await pc[`createOffer`](signalOption);
+      // 設定本地流配置
+      await pc.setLocalDescription(offer);
+      desc = pc.localDescription;
+      socket.emit("backVideoSignaling", { desc });
+    } catch(err) {
+      console.log(err);
+    }
+  } else if (candidate) {
+    // 新增對方 IP 候選位置
+    console.log('candidate =>', candidate);
+    pc.addIceCandidate(new RTCIceCandidate(candidate));
+  }
+});
+
+btnCall.addEventListener('click', async function() {
   try {
     if (!pc) {
       console.log('尚未開啟視訊');
       return;
     }
     // 呼叫 peerConnect 內的 createOffer / createAnswer
-    offer = await pc[`create${isOffer ? 'Offer' : 'Answer'}`](signalOption);
+    offer = await pc[`createOffer`](signalOption);
     // 設定本地流配置
     await pc.setLocalDescription(offer);
-    sendSignalingMessage(pc.localDescription, isOffer ? true : false)
+    desc = pc.localDescription;
+    socket.emit("peerconnectSignaling", { desc });
   } catch(err) {
     console.log(err);
   }
-};
-
-function sendSignalingMessage(desc, offer) {
-  const isOffer = offer ? "offer" : "answer";
-  console.log(`寄出 ${isOffer}`);
-  socket.emit("peerconnectSignaling", { desc });
-};
-
-btnCall.addEventListener('click', function() {
-  createSignal(true);
 });
 
 initPeerConnection();
