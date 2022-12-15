@@ -6,7 +6,7 @@ const server = require('http').Server(app).listen(port, () => {
 });
 
 app.get('/s', function(req, res){
-  res.sendFile(__dirname + '/share_screen.html');
+  res.sendFile(__dirname + '/student_screen.html');
 });
 
 app.get('/t', function(req, res){
@@ -34,28 +34,16 @@ io.on('connection', client => {
       client.leave(nowRoom);
     }
     client.join(room);
-
-    // console.log('client_id');
-    // console.log(client.id);
-    // console.log(room);
-    // room_list[room] = client.id;
-
     io.to(room).emit('roomBroadcast', '已有新人加入聊天室！');
   });
 
   client.on('peerconnectSignaling', message => {
-    // console.log('接收資料：', message);
     const nowRoom = findNowRoom(client);
-    // console.log('now room: ');
-    // console.log(room_list['teacher_room']);
     client.to(nowRoom).emit('peerconnectSignaling', message)
   });
 
   client.on('backVideoSignaling', message => {
-    // console.log('接收資料：', message);
     const nowRoom = findNowRoom(client);
-    // console.log('now room: ');
-    // console.log(room_list['teacher_room']);
     client.to(nowRoom).emit('backVideoSignaling', message)
   });
 
