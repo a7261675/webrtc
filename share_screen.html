@@ -93,10 +93,7 @@ function onIceconnectionStateChange() {
 // 監聽是否有流傳入，如果有的話就顯示影像
 function onAddStream() {
   pc.onaddstream = (event) => {
-    if(!remoteVideo.srcObject && event.stream){
-      remoteVideo.srcObject = event.stream;
-      console.log('接收流並顯示於遠端視訊！', event);
-    }
+    console.log('接收流並顯示於遠端視訊！', event);
   }
 }
 

@@ -35,10 +35,10 @@ io.on('connection', client => {
     }
     client.join(room);
 
-    console.log('client_id');
-    console.log(client.id);
-    console.log(room);
-    room_list[room] = client.id;
+    // console.log('client_id');
+    // console.log(client.id);
+    // console.log(room);
+    // room_list[room] = client.id;
 
     io.to(room).emit('roomBroadcast', '已有新人加入聊天室！');
   });
@@ -46,9 +46,9 @@ io.on('connection', client => {
   client.on('peerconnectSignaling', message => {
     // console.log('接收資料：', message);
     const nowRoom = findNowRoom(client);
-    console.log('now room: ');
-    console.log(room_list['teacher_room']);
-    client.to('teacher_room').emit('peerconnectSignaling', message)
+    // console.log('now room: ');
+    // console.log(room_list['teacher_room']);
+    client.to(nowRoom).emit('peerconnectSignaling', message)
   });
 
   client.on('disconnect', () => {
