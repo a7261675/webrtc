@@ -2,9 +2,7 @@
   <head>
   </head>
   <body>
-    <div>  
-        <button class="joinBtn">join room</button>
-
+    <div>
         <video width="500" height="500" autoplay
           id="remote_video_0" playsinline></video>
         <video width="500" height="500" autoplay
@@ -19,8 +17,6 @@
 
     // 連線到 Server Port
     const socket = io('http://localhost:3000');
-
-    const joinBtn = document.querySelector('.joinBtn');
     let localstream;
     let pc1;
     let pc2;
@@ -28,11 +24,6 @@
     let pc4;
     let pc_list = [pc1, pc2, pc3];
     let now = 0;
-
-function joinRoom() {
-  socket.emit('joinRoom' , 'teacher_room');
-};
-joinBtn.addEventListener('click', joinRoom);
 
 let offer;
 
@@ -105,6 +96,7 @@ async function initPeerConnection(i) {
 initPeerConnection(0);
 initPeerConnection(1);
 initPeerConnection(2);
+socket.emit('joinRoom' , 'teacher_room');
 
   </script>
 </html>

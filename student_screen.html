@@ -2,9 +2,7 @@
   <head>
   </head>
   <body>
-    <div>  
-        <button class="joinBtn">join room</button>
-        
+    <div>
         <button class="btnCall">send offer</button>
                                  
         <video width="1000" height="1000" autoplay
@@ -22,90 +20,8 @@
     const socket = io('http://localhost:3000');
 
     const myVideo = document.querySelector('#myVideo');
-    const joinBtn = document.querySelector('.joinBtn');
     let localstream;
     let pc;
-
-// 初始化影像/聲音
-async function createMedia() {
-  // 儲存本地流到全域
-  localstream = await navigator.mediaDevices.getDisplayMedia({ audio: true, video: true })
-  myVideo.srcObject = localstream;
-};
-
-// 取得裝置名稱
-function getAudioVideo() {
-  const video = localstream.getVideoTracks();
-  const audio = localstream.getAudioTracks();
-
-  if (video.length > 0) {
-    console.log(`使用影像裝置 => ${video[0].label}`)
-  };
-  if (audio.length > 0) {
-    console.log(`使用聲音裝置 => ${audio[0].label}`)
-  };
-}
-
-// 建立 P2P 連接
-function createPeerConnection() {
-  const configuration = {
-    iceServers: [{
-      urls: 'stun:stun.l.google.com:19302' // Google's public STUN server
-    }]
-   };
-  pc = new RTCPeerConnection(configuration);
-};
-
-// 增加本地流
-function addLocalStream() {
-  pc.addStream(localstream)
-};
-
-function joinRoom() {
-  socket.emit('joinRoom' , 'teacher_room');
-};
-
-socket.on('roomBroadcast', message => {
-  console.log('房間廣播 => ', message);
-});
-
-joinBtn.addEventListener('click', joinRoom);
-//以下還不能動
-const remoteVideo = document.querySelector('#remoteVideo');
-
-// 監聽 ICE Server
-function onIceCandidates() {
-  // 找尋到 ICE 候選位置後，送去 Server 與另一位配對
-  pc.onicecandidate = ({ candidate }) => {
-    if (!candidate) { return; }
-    console.log('onIceCandidate => ', candidate);
-    socket.emit("peerconnectSignaling", { candidate });
-  };
-};
-
-// 監聽 ICE 連接狀態
-function onIceconnectionStateChange() {
-  pc.oniceconnectionstatechange = (evt) => {
-    console.log('ICE 伺服器狀態變更 => ', evt.target.iceConnectionState);
-  };
-}
-
-// 監聽是否有流傳入，如果有的話就顯示影像
-function onAddStream() {
-  pc.onaddstream = (event) => {
-    console.log('接收流並顯示於遠端視訊！', event);
-  }
-}
-
-async function initPeerConnection() {
-  await createMedia();
-  getAudioVideo();
-  createPeerConnection();
-  addLocalStream();
-  onIceCandidates();
-  onIceconnectionStateChange();
-  onAddStream();
-}
 
 const btnCall = document.querySelector('.btnCall');
 
@@ -121,21 +37,6 @@ socket.on('backVideoSignaling', async ({ desc, candidate }) => {
   if (desc && !pc.currentRemoteDescription) {
     console.log('desc => ', desc);
     await pc.setRemoteDescription(new RTCSessionDescription(desc));
-    createSignal(true);
-    try {
-      if (!pc) {
-        console.log('尚未開啟視訊');
-        return;
-      }
-      // 呼叫 peerConnect 內的 createOffer / createAnswer
-      offer = await pc[`createOffer`](signalOption);
-      // 設定本地流配置
-      await pc.setLocalDescription(offer);
-      desc = pc.localDescription;
-      socket.emit("backVideoSignaling", { desc });
-    } catch(err) {
-      console.log(err);
-    }
   } else if (candidate) {
     // 新增對方 IP 候選位置
     console.log('candidate =>', candidate);
@@ -159,6 +60,33 @@ btnCall.addEventListener('click', async function() {
     console.log(err);
   }
 });
+
+async function initPeerConnection() {
+  localstream = await navigator.mediaDevices.getDisplayMedia({ audio: true, video: true })
+  myVideo.srcObject = localstream;
+  const configuration = {
+    iceServers: [{
+      urls: 'stun:stun.l.google.com:19302' // Google's public STUN server
+    }]
+   };
+  pc = new RTCPeerConnection(configuration);
+  pc.addStream(localstream)
+  // 找尋到 ICE 候選位置後，送去 Server 與另一位配對
+  pc.onicecandidate = ({ candidate }) => {
+    if (!candidate) { return; }
+    console.log('onIceCandidate => ', candidate);
+    socket.emit("peerconnectSignaling", { candidate });
+  };
+
+  pc.oniceconnectionstatechange = (evt) => {
+    console.log('ICE 伺服器狀態變更 => ', evt.target.iceConnectionState);
+  };
+
+  pc.onaddstream = (event) => {
+    console.log('接收流並顯示於遠端視訊！', event);
+  }
+  socket.emit('joinRoom' , 'teacher_room');
+}
 
 initPeerConnection();
 
