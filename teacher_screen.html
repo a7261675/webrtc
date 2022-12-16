@@ -6,20 +6,14 @@
       <label id = "student_name_0"></label>
         <video width="500" height="500" autoplay
           id="remote_video_0" playsinline></video>
-        <video width="500" height="500" autoplay
-          id="remote_video2_0" playsinline></video>
-          
+
           <label id = "student_name_1"></label>
         <video width="500" height="500" autoplay
           id="remote_video_1" playsinline></video>
-          <video width="500" height="500" autoplay
-          id="remote_video2_1" playsinline></video>
           
           <label id = "student_name_2"></label>
         <video width="500" height="500" autoplay
           id="remote_video_2" playsinline></video>
-          <video width="500" height="500" autoplay
-          id="remote_video2_2" playsinline></video>
     </div>
   </body>
   <script src="/socket.io/socket.io.js"></script>
@@ -31,12 +25,8 @@
     let pc1;
     let pc2;
     let pc3;
-    let pc21;
-    let pc22;
-    let pc23;
     let pc4;
     let pc_list = [pc1, pc2, pc3];
-    let pc_list2 = [pc21, pc22, pc23];
     let now = 0;
 
 let offer;
@@ -50,24 +40,20 @@ const signalOption = {
 socket.on('peerconnectSignaling', async (message) => {
   // desc 指的是 Offer 與 Answer
   // currentRemoteDescription 代表的是最近一次連線成功的相關訊息
-  if (message.video && !pc_list[now].currentRemoteDescription && message.video2 && !pc_list2[now].currentRemoteDescription) {
+  if (message.video && !pc_list[now].currentRemoteDescription) {
     $(`#student_name_${now}`).text(message.name);
+    await pc_list[now].setRemoteDescription(new RTCSessionDescription(message.video));
     try {
-      await pc_list[now].setRemoteDescription(new RTCSessionDescription(message.video));
-      await pc_list2[now].setRemoteDescription(new RTCSessionDescription(message.video2));
       if (!pc_list[now]) {
         console.log('尚未開啟視訊');
         return;
       }
       // 呼叫 peerConnect 內的 createOffer / createAnswer
       offer = await pc_list[now][`createAnswer`](signalOption);
-      offer2 = await pc_list2[now][`createAnswer`](signalOption);
       // 設定本地流配置
       await pc_list[now].setLocalDescription(offer);
-      await pc_list2[now].setLocalDescription(offer2);
       desc = pc_list[now].localDescription;
-      desc2 = pc_list2[now].localDescription;
-      socket.emit("backVideoSignaling", { video: desc, video2: desc2 });
+      socket.emit("backVideoSignaling", { video: desc});
       console.log('change pc');
       now++;
     } catch(err) {
@@ -82,9 +68,6 @@ socket.on('peerconnectSignaling', async (message) => {
     console.log('this is candidate');
     console.log(now);
     pc_list[now].addIceCandidate(new RTCIceCandidate(message.candidate));
-    console.log('this is candidate2');
-    pc_list2[now].addIceCandidate(new RTCIceCandidate(message.candidate));
-    console.log('this is candidate end');
   }
 });
 
@@ -110,34 +93,6 @@ async function initPeerConnection(i) {
     if(!remoteVideo.srcObject && event.stream){
       remoteVideo.srcObject = event.stream;
       console.log('接收流並顯示於遠端分享桌面！', event);
-    }
-    remoteVideo.addEventListener('click', async function() {
-        console.log(remoteVideo);
-        if (remoteVideo.requestFullscreen) {
-          remoteVideo.requestFullscreen();
-        } else if (remoteVideo.webkitRequestFullscreen) { /* Safari */
-          remoteVideo.webkitRequestFullscreen();
-        } else if (remoteVideo.msRequestFullscreen) { /* IE11 */
-          remoteVideo.msRequestFullscreen();
-        }
-    });
-  }
-
-  pc_list2[i] = new RTCPeerConnection(configuration);
-  pc_list2[i].addStream(localstream.clone())
-  pc_list2[i].onicecandidate = ({ candidate }) => {
-    if (!candidate) { return; }
-    console.log('onIceCandidate 2=> ', candidate);
-    socket.emit("peerconnectSignaling", { candidate });
-  };
-  pc_list2[i].oniceconnectionstatechange = (evt) => {
-    console.log('ICE2 伺服器狀態變更 => ', evt.target.iceConnectionState);
-  };
-  pc_list2[i].onaddstream = (event) => {
-    remoteVideo = document.querySelector(`#remote_video2_${i}`); 
-    if(!remoteVideo.srcObject && event.stream){
-      remoteVideo.srcObject = event.stream;
-      console.log('接收流並顯示於遠端視訊！', event);
     }
     remoteVideo.addEventListener('click', async function() {
         console.log(remoteVideo);
