@@ -39,6 +39,8 @@ io.on('connection', client => {
 
   client.on('peerconnectSignaling', message => {
     const nowRoom = findNowRoom(client);
+    console.log('========================= message ============================');
+    console.log(message);
     client.to(nowRoom).emit('peerconnectSignaling', message)
   });
 
