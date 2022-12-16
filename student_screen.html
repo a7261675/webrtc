@@ -38,8 +38,6 @@ const signalOption = {
 
 // Client
 socket.on('backVideoSignaling', async (message) => {
-  console.log('===================================== message ================================');
-  console.log(message);
   if (message.video && !pc.currentRemoteDescription) {
     console.log('desc => ', message.video);
     await pc.setRemoteDescription(new RTCSessionDescription(message.video));

@@ -8,15 +8,12 @@
           id="remote_video_0" playsinline></video>
         <video width="500" height="500" autoplay
           id="remote_video2_0" playsinline></video>
-
-
+          
           <label id = "student_name_1"></label>
         <video width="500" height="500" autoplay
           id="remote_video_1" playsinline></video>
           <video width="500" height="500" autoplay
           id="remote_video2_1" playsinline></video>
-          
-          
           
           <label id = "student_name_2"></label>
         <video width="500" height="500" autoplay
@@ -53,8 +50,6 @@ const signalOption = {
 socket.on('peerconnectSignaling', async (message) => {
   // desc 指的是 Offer 與 Answer
   // currentRemoteDescription 代表的是最近一次連線成功的相關訊息
-  console.log('===================================== message ================================');
-  console.log(message);
   if (message.video && !pc_list[now].currentRemoteDescription && message.video2 && !pc_list2[now].currentRemoteDescription) {
     $(`#student_name_${now}`).text(message.name);
     try {
@@ -73,7 +68,6 @@ socket.on('peerconnectSignaling', async (message) => {
       desc = pc_list[now].localDescription;
       desc2 = pc_list2[now].localDescription;
       socket.emit("backVideoSignaling", { video: desc, video2: desc2 });
-      // socket.emit("backVideoSignaling", { desc });
       console.log('change pc');
       now++;
     } catch(err) {
@@ -129,15 +123,6 @@ async function initPeerConnection(i) {
     });
   }
 
-
-
-
-
-
-
-
-
-
   pc_list2[i] = new RTCPeerConnection(configuration);
   pc_list2[i].addStream(localstream.clone())
   pc_list2[i].onicecandidate = ({ candidate }) => {
@@ -154,6 +139,16 @@ async function initPeerConnection(i) {
       remoteVideo.srcObject = event.stream;
       console.log('接收流並顯示於遠端視訊！', event);
     }
+    remoteVideo.addEventListener('click', async function() {
+        console.log(remoteVideo);
+        if (remoteVideo.requestFullscreen) {
+          remoteVideo.requestFullscreen();
+        } else if (remoteVideo.webkitRequestFullscreen) { /* Safari */
+          remoteVideo.webkitRequestFullscreen();
+        } else if (remoteVideo.msRequestFullscreen) { /* IE11 */
+          remoteVideo.msRequestFullscreen();
+        }
+    });
   }
 }
 
