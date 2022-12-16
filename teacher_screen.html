@@ -14,7 +14,6 @@
   <script src="/socket.io/socket.io.js"></script>
   <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
   <script>
-
     // 連線到 Server Port
     const socket = io('http://localhost:3000');
     let localstream;
@@ -90,6 +89,16 @@ async function initPeerConnection(i) {
       remoteVideo.srcObject = event.stream;
       console.log('接收流並顯示於遠端視訊！', event);
     }
+    remoteVideo.addEventListener('click', async function() {
+        console.log(remoteVideo);
+        if (remoteVideo.requestFullscreen) {
+          remoteVideo.requestFullscreen();
+        } else if (remoteVideo.webkitRequestFullscreen) { /* Safari */
+          remoteVideo.webkitRequestFullscreen();
+        } else if (remoteVideo.msRequestFullscreen) { /* IE11 */
+          remoteVideo.msRequestFullscreen();
+        }
+    });
   }
 }
 
