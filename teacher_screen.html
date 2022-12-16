@@ -3,10 +3,13 @@
   </head>
   <body>
     <div>
+      <label id = "student_name_0"></label>
         <video width="500" height="500" autoplay
           id="remote_video_0" playsinline></video>
+          <label id = "student_name_1"></label>
         <video width="500" height="500" autoplay
           id="remote_video_1" playsinline></video>
+          <label id = "student_name_2"></label>
         <video width="500" height="500" autoplay
           id="remote_video_2" playsinline></video>
       </div>
@@ -36,6 +39,7 @@ socket.on('peerconnectSignaling', async (message) => {
   // desc 指的是 Offer 與 Answer
   // currentRemoteDescription 代表的是最近一次連線成功的相關訊息
   if (message.video && !pc_list[now].currentRemoteDescription) {
+    $(`#student_name_${now}`).text(message.name);
     await pc_list[now].setRemoteDescription(new RTCSessionDescription(message.video));
     try {
       if (!pc_list[now]) {

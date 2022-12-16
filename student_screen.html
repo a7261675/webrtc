@@ -3,14 +3,11 @@
   </head>
   <body>
     <div>
-        <button class="btnCall">send offer</button>
-                                 
+      <label id = "student_name"></label>
         <video width="1000" height="1000" autoplay
           id="myVideo" muted playsinline></video>
-                                    
-        <video width="1000" height="1000" autoplay
-          id="remoteVideo" playsinline></video>
-      </div>
+
+          <button class="btnCall">send offer</button>
   </body>
   <script src="/socket.io/socket.io.js"></script>
   <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
@@ -23,6 +20,8 @@
     let localstream;
     let pc;
 
+const student_name = prompt('請輸入你的名字');
+$('#student_name').text(student_name);
 const btnCall = document.querySelector('.btnCall');
 
 let offer;
@@ -55,7 +54,7 @@ btnCall.addEventListener('click', async function() {
     // 設定本地流配置
     await pc.setLocalDescription(offer);
     desc = pc.localDescription;
-    socket.emit("peerconnectSignaling", {name: 'icedwater', video: desc });
+    socket.emit("peerconnectSignaling", {name: student_name, video: desc });
   } catch(err) {
     console.log(err);
   }
