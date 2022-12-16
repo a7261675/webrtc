@@ -5,7 +5,9 @@
     <div>
       <label id = "student_name"></label>
         <video width="1000" height="1000" autoplay
-          id="myVideo" muted playsinline></video>
+          id="desktop_video" muted playsinline></video>
+        <video width="1000" height="1000" autoplay
+          id="user_video" muted playsinline></video>
 
           <button class="btnCall">send offer</button>
   </body>
@@ -16,9 +18,12 @@
     // 連線到 Server Port
     const socket = io('http://localhost:3000');
 
-    const myVideo = document.querySelector('#myVideo');
-    let localstream;
+    const desktop_video = document.querySelector('#desktop_video');
+    const user_video = document.querySelector('#user_video');
+    let localDesktopVideoStream;
+    let localUserVideoStream;
     let pc;
+    let pc2;
 
 const student_name = prompt('請輸入你的名字');
 $('#student_name').text(student_name);
@@ -51,39 +56,57 @@ btnCall.addEventListener('click', async function() {
     }
     // 呼叫 peerConnect 內的 createOffer / createAnswer
     offer = await pc[`createOffer`](signalOption);
+    // offer2 = await pc2[`createOffer`](signalOption);
     // 設定本地流配置
     await pc.setLocalDescription(offer);
+    // await pc2.setLocalDescription(offer2);
     desc = pc.localDescription;
-    socket.emit("peerconnectSignaling", {name: student_name, video: desc });
+    // desc2 = pc2.localDescription;
+    socket.emit("peerconnectSignaling", {name: student_name, video: desc});
   } catch(err) {
     console.log(err);
   }
 });
 
 async function initPeerConnection() {
-  localstream = await navigator.mediaDevices.getDisplayMedia({ audio: true, video: true })
-  myVideo.srcObject = localstream;
+  localDesktopVideoStream = await navigator.mediaDevices.getDisplayMedia({ audio: false, video: true })
+  localUserVideoStream = await navigator.mediaDevices.getUserMedia({ audio: false, video: true })
+  desktop_video.srcObject = localDesktopVideoStream;
+  user_video.srcObject = localUserVideoStream;
   const configuration = {
     iceServers: [{
       urls: 'stun:stun.l.google.com:19302' // Google's public STUN server
     }]
    };
   pc = new RTCPeerConnection(configuration);
-  pc.addStream(localstream)
+  // pc2 = new RTCPeerConnection(configuration);
+  pc.addStream(localDesktopVideoStream)
+  // pc2.addStream(localUserVideoStream)
   // 找尋到 ICE 候選位置後，送去 Server 與另一位配對
   pc.onicecandidate = ({ candidate }) => {
     if (!candidate) { return; }
     console.log('onIceCandidate => ', candidate);
     socket.emit("peerconnectSignaling", { candidate });
   };
+  // pc2.onicecandidate = ({ candidate }) => {
+  //   if (!candidate) { return; }
+  //   console.log('onIceCandidate => ', candidate);
+  //   socket.emit("peerconnectSignaling", { candidate });
+  // };
 
   pc.oniceconnectionstatechange = (evt) => {
     console.log('ICE 伺服器狀態變更 => ', evt.target.iceConnectionState);
   };
+  // pc2.oniceconnectionstatechange = (evt) => {
+  //   console.log('ICE2 伺服器狀態變更 => ', evt.target.iceConnectionState);
+  // };
 
   pc.onaddstream = (event) => {
     console.log('接收流並顯示於遠端視訊！', event);
   }
+  // pc2.onaddstream = (event) => {
+  //   console.log('接收流並顯示於遠端視訊！', event);
+  // }
   socket.emit('joinRoom' , 'teacher_room');
 }
 
