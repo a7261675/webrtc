@@ -39,10 +39,19 @@
     socket.on('teacherSendToStudentSignaling', async (message) => {
       if (message.shareScreenVideo && !shareScreenRTCPeerConnectionInstance.currentRemoteDescription) {
         // console.log('desc => ', message.video);
+        console.log('=================================== step 10 student set remote description =======================================');
+        console.log('set remote description time: ' + new Date().getTime());
         await shareScreenRTCPeerConnectionInstance.setRemoteDescription(new RTCSessionDescription(message.shareScreenVideo));
         await videoCallRTCPeerConnectionInstance.setRemoteDescription(new RTCSessionDescription(message.videoCallVideo));
-      } else if (message.candidate) {
+      }
+      
+      if (message.candidate) {
         // 新增對方 IP 候選位置
+        console.log('=================================== step 16 student get candidate =======================================');
+        console.log('student get candidate time: ' + new Date().getTime());
+        console.log('=================================== step 17 student add candidate =======================================');
+        console.log('student add candidate time: ' + new Date().getTime());
+        console.log('add candidate =>', message.candidate);
         shareScreenRTCPeerConnectionInstance.addIceCandidate(new RTCIceCandidate(message.candidate));
         videoCallRTCPeerConnectionInstance.addIceCandidate(new RTCIceCandidate(message.candidate));
       }
@@ -55,13 +64,19 @@
           return;
         }
         // 呼叫 peerConnect 內的 createOffer / createAnswer
+        console.log('=================================== step 3 create offer =======================================');
+        console.log('create offer  time: ' + new Date().getTime());
         shareScreenOfferSdpDescription = await shareScreenRTCPeerConnectionInstance[`createOffer`](signalOption);
         videoCallOfferSdpDescription = await videoCallRTCPeerConnectionInstance[`createOffer`](signalOption);
         // 設定本地流配置
+        console.log('=================================== step 4 set local description =======================================');
+        console.log('set local description time: ' + new Date().getTime());
         await shareScreenRTCPeerConnectionInstance.setLocalDescription(shareScreenOfferSdpDescription);
         await videoCallRTCPeerConnectionInstance.setLocalDescription(videoCallOfferSdpDescription);
         shareScreenLocalDescription = shareScreenRTCPeerConnectionInstance.localDescription;
         videoCallLocalDescription = videoCallRTCPeerConnectionInstance.localDescription;
+        console.log('=================================== step 5 send offer sdp =======================================');
+        console.log('send offer sdp time: ' + new Date().getTime());
         socket.emit("studentSendToTeacherSignaling", {name: studentName, shareScreenVideo: shareScreenLocalDescription, videoCallVideo: videoCallLocalDescription});
       } catch(err) {
         console.log(err);
@@ -78,17 +93,31 @@
           urls: 'stun:stun.l.google.com:19302' // Google's public STUN server
         }]
       };
+      console.log('=================================== step 1 create peer connection =======================================');
+      console.log('create peer connection time: ' + new Date().getTime());
       shareScreenRTCPeerConnectionInstance = new RTCPeerConnection(configuration);
       videoCallRTCPeerConnectionInstance = new RTCPeerConnection(configuration);
+      console.log('=================================== step 2 add local streams =======================================');
+      console.log('add local streams time: ' + new Date().getTime());
       shareScreenRTCPeerConnectionInstance.addStream(localShareScreenVideoStream)
       videoCallRTCPeerConnectionInstance.addStream(localVideoCallVideoStream)
       // 找尋到 ICE 候選位置後，送去 Server 與另一位配對
       shareScreenRTCPeerConnectionInstance.onicecandidate = ({ candidate }) => {
         if (!candidate) { return; }
+        console.log('=================================== step 11 student pc1 on ice candidate =======================================');
+        console.log('student on ice candidate time: ' + new Date().getTime());
+        console.log('=================================== step 12 student pc1 send candidate =======================================');
+        console.log('student send candidate time: ' + new Date().getTime());
+        console.log('onIceCandidate => ', candidate);
         socket.emit("studentSendToTeacherSignaling", { candidate: candidate });
       };
       videoCallRTCPeerConnectionInstance.onicecandidate = ({ candidate }) => {
         if (!candidate) { return; }
+        console.log('=================================== step 11 student pc2 on ice candidate =======================================');
+        console.log('student on ice candidate time: ' + new Date().getTime());
+        console.log('=================================== step 12 student pc2 send candidate =======================================');
+        console.log('student send candidate time: ' + new Date().getTime());
+        console.log('onIceCandidate => ', candidate);
         socket.emit("studentSendToTeacherSignaling", { candidate: candidate });
       };
 
@@ -100,9 +129,13 @@
       };
 
       shareScreenRTCPeerConnectionInstance.onaddstream = (event) => {
+        console.log('=================================== step ? pc1 student on add stream =======================================');
+        console.log('student on add stream time: ' + new Date().getTime());
         console.log('接收流並顯示於遠端分享桌面！', event);
       }
       videoCallRTCPeerConnectionInstance.onaddstream = (event) => {
+        console.log('=================================== step ? pc2 student on add stream =======================================');
+        console.log('student on add stream time: ' + new Date().getTime());
         console.log('接收流並顯示於遠端視訊！', event);
       }
       socket.emit('joinRoom' , 'teacher_room');

@@ -57,6 +57,8 @@
       // currentRemoteDescription 代表的是最近一次連線成功的相關訊息
       if (message.shareScreenVideo && !shareScreenRTCPeerConnectionInstanceList[now].currentRemoteDescription && message.videoCallVideo && !videoCallRTCPeerConnectionInstanceList[now].currentRemoteDescription) {
         $(`#studentName_${now}`).text(message.name);
+        console.log('=================================== step 6 set remote description =======================================');
+        console.log('set remote description time: ' + new Date().getTime());
         try {
           await shareScreenRTCPeerConnectionInstanceList[now].setRemoteDescription(new RTCSessionDescription(message.shareScreenVideo));
           await videoCallRTCPeerConnectionInstanceList[now].setRemoteDescription(new RTCSessionDescription(message.videoCallVideo));
@@ -65,13 +67,19 @@
             return;
           }
           // 呼叫 peerConnect 內的 createOffer / createAnswer
+          console.log('=================================== step 7 create answer description =======================================');
+          console.log('create answer description time: ' + new Date().getTime());
           shareScreenOfferSdpDescription = await shareScreenRTCPeerConnectionInstanceList[now][`createAnswer`](signalOption);
           videoCallOfferSdpDescription = await videoCallRTCPeerConnectionInstanceList[now][`createAnswer`](signalOption);
           // 設定本地流配置
+          console.log('=================================== step 8 teacher set local description =======================================');
+          console.log('teacher set local description time: ' + new Date().getTime());
           await shareScreenRTCPeerConnectionInstanceList[now].setLocalDescription(shareScreenOfferSdpDescription);
           await videoCallRTCPeerConnectionInstanceList[now].setLocalDescription(videoCallOfferSdpDescription);
           shareScreenLocalDescription = shareScreenRTCPeerConnectionInstanceList[now].localDescription;
           videoCallLocalDescription = videoCallRTCPeerConnectionInstanceList[now].localDescription;
+          console.log('=================================== step 9 send answer sdp =======================================');
+          console.log('send answer sdp time: ' + new Date().getTime());
           socket.emit("teacherSendToStudentSignaling", { shareScreenVideo: shareScreenLocalDescription, videoCallVideo: videoCallLocalDescription });
         } catch(err) {
           console.log(err);
@@ -80,6 +88,10 @@
       
       if (message.candidate) {
         // 新增對方 IP 候選位置
+        console.log('=================================== step 13 teacher get candidate =======================================');
+        console.log('teacher get candidate time: ' + new Date().getTime());
+        console.log('now: ' + now);
+        console.log('add candidate =>', message.candidate);
         shareScreenRTCPeerConnectionInstanceList[now].addIceCandidate(new RTCIceCandidate(message.candidate));
         videoCallRTCPeerConnectionInstanceList[now].addIceCandidate(new RTCIceCandidate(message.candidate));
       }
@@ -96,14 +108,27 @@
       shareScreenRTCPeerConnectionInstanceList[i].addStream(localstream.clone())
       shareScreenRTCPeerConnectionInstanceList[i].onicecandidate = ({ candidate }) => {
         if (!candidate) { return; }
+         
+        console.log('=================================== step 14 teacher on ice candidate =======================================');
+        console.log('teacher on ice candidate time: ' + new Date().getTime());
+        console.log('=================================== step 15 teacher send candidate =======================================');
+        console.log('teacher send candidate time: ' + new Date().getTime());
+        console.log('now: ' + now);
+        console.log('onIceCandidate => ', candidate);
         socket.emit("teacherSendToStudentSignaling", { candidate: candidate });
       };
       shareScreenRTCPeerConnectionInstanceList[i].oniceconnectionstatechange = (evt) => {
+        console.log('ICE 伺服器狀態變更 => ', evt.target.iceConnectionState);
+        console.log('狀態變更時間: ' + new Date().getTime());
         if (evt.target.iceConnectionState == 'connected') {
+          console.log('連線完成時間: ' + new Date().getTime());
+          console.log('now: ' + now);
           now++;
         }
       };
       shareScreenRTCPeerConnectionInstanceList[i].onaddstream = (event) => {
+        console.log('=================================== step ? teacher on add stream =======================================');
+        console.log('teacher on add stream time: ' + new Date().getTime());
         var remoteShareScreenVideo = document.querySelector(`#remoteShareScreenVideo_${i}`); 
         if(!remoteShareScreenVideo.srcObject && event.stream){
           remoteShareScreenVideo.srcObject = event.stream;
@@ -125,6 +150,7 @@
       videoCallRTCPeerConnectionInstanceList[i].addStream(localstream.clone())
       videoCallRTCPeerConnectionInstanceList[i].onicecandidate = ({ candidate }) => {
         if (!candidate) { return; }
+        console.log('onIceCandidate 2=> ', candidate);
         socket.emit("teacherSendToStudentSignaling", { candidate: candidate });
       };
       videoCallRTCPeerConnectionInstanceList[i].oniceconnectionstatechange = (evt) => {
