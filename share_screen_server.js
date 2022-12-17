@@ -38,11 +38,15 @@ io.on('connection', client => {
   });
 
   client.on('peerconnectSignaling', message => {
+    console.log('=================================== step ? peerconnectSignaling =======================================');
+    console.log('peerconnectSignaling time: ' + new Date().getTime());
     const nowRoom = findNowRoom(client);
     client.to(nowRoom).emit('peerconnectSignaling', message)
   });
 
   client.on('backVideoSignaling', message => {
+    console.log('=================================== step ? backVideoSignaling =======================================');
+    console.log('backVideoSignaling time: ' + new Date().getTime());
     const nowRoom = findNowRoom(client);
     client.to(nowRoom).emit('backVideoSignaling', message)
   });
