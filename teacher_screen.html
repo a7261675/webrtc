@@ -52,8 +52,6 @@ socket.on('peerconnectSignaling', async (message) => {
   // currentRemoteDescription 代表的是最近一次連線成功的相關訊息
   if (message.video && !pc_list[now].currentRemoteDescription && message.video2 && !pc_list2[now].currentRemoteDescription) {
     $(`#student_name_${now}`).text(message.name);
-    console.log('=================================== step 6 set remote description =======================================');
-    console.log('set remote description time: ' + new Date().getTime());
     try {
       await pc_list[now].setRemoteDescription(new RTCSessionDescription(message.video));
       await pc_list2[now].setRemoteDescription(new RTCSessionDescription(message.video2));
@@ -62,34 +60,21 @@ socket.on('peerconnectSignaling', async (message) => {
         return;
       }
       // 呼叫 peerConnect 內的 createOffer / createAnswer
-      console.log('=================================== step 7 create answer description =======================================');
-      console.log('create answer description time: ' + new Date().getTime());
       offer = await pc_list[now][`createAnswer`](signalOption);
       offer2 = await pc_list2[now][`createAnswer`](signalOption);
       // 設定本地流配置
-      console.log('=================================== step 8 teacher set local description =======================================');
-      console.log('teacher set local description time: ' + new Date().getTime());
       await pc_list[now].setLocalDescription(offer);
       await pc_list2[now].setLocalDescription(offer2);
       desc = pc_list[now].localDescription;
       desc2 = pc_list2[now].localDescription;
-      console.log('=================================== step 9 send answer sdp =======================================');
-      console.log('send answer sdp time: ' + new Date().getTime());
       socket.emit("backVideoSignaling", { video: desc, video2: desc2 });
-      console.log('change pc');
-      // now++;
     } catch(err) {
-      console.log('this is error');
       console.log(err);
     }
   }
   
   if (message.candidate) {
     // 新增對方 IP 候選位置
-    console.log('=================================== step 13 teacher get candidate =======================================');
-    console.log('teacher get candidate time: ' + new Date().getTime());
-    console.log('now: ' + now);
-    console.log('add candidate =>', message.candidate);
     pc_list[now].addIceCandidate(new RTCIceCandidate(message.candidate));
     console.log('this is candidate2');
     pc_list2[now].addIceCandidate(new RTCIceCandidate(message.candidate));
@@ -108,28 +93,15 @@ async function initPeerConnection(i) {
   pc_list[i].addStream(localstream.clone())
   pc_list[i].onicecandidate = ({ candidate }) => {
     if (!candidate) { return; }
-    
-    console.log('=================================== step 14 teacher on ice candidate =======================================');
-    console.log('teacher on ice candidate time: ' + new Date().getTime());
-    console.log('=================================== step 15 teacher send candidate =======================================');
-    console.log('teacher send candidate time: ' + new Date().getTime());
-    console.log('now: ' + now);
-    console.log('onIceCandidate => ', candidate);
     socket.emit("backVideoSignaling", { candidate: candidate });
   };
   pc_list[i].oniceconnectionstatechange = (evt) => {
-    console.log('ICE 伺服器狀態變更 => ', evt.target.iceConnectionState);
-    console.log('狀態變更時間: ' + new Date().getTime());
     if (evt.target.iceConnectionState == 'connected') {
-      console.log('連線完成時間: ' + new Date().getTime());
-      console.log('now: ' + now);
       now++;
     }
   };
   pc_list[i].onaddstream = (event) => {
-    console.log('=================================== step ? teacher on add stream =======================================');
-    console.log('teacher on add stream time: ' + new Date().getTime());
-    remoteVideo = document.querySelector(`#remote_video_${i}`); 
+    var remoteVideo = document.querySelector(`#remote_video_${i}`); 
     if(!remoteVideo.srcObject && event.stream){
       remoteVideo.srcObject = event.stream;
       console.log('接收流並顯示於遠端分享桌面！', event);
@@ -150,14 +122,13 @@ async function initPeerConnection(i) {
   pc_list2[i].addStream(localstream.clone())
   pc_list2[i].onicecandidate = ({ candidate }) => {
     if (!candidate) { return; }
-    console.log('onIceCandidate 2=> ', candidate);
     socket.emit("peerconnectSignaling", { candidate });
   };
   pc_list2[i].oniceconnectionstatechange = (evt) => {
     console.log('ICE2 伺服器狀態變更 => ', evt.target.iceConnectionState);
   };
   pc_list2[i].onaddstream = (event) => {
-    remoteVideo = document.querySelector(`#remote_video2_${i}`); 
+    var remoteVideo = document.querySelector(`#remote_video2_${i}`); 
     if(!remoteVideo.srcObject && event.stream){
       remoteVideo.srcObject = event.stream;
       console.log('接收流並顯示於遠端視訊！', event);

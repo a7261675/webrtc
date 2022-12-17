@@ -41,17 +41,10 @@ const signalOption = {
 socket.on('backVideoSignaling', async (message) => {
   if (message.video && !pc.currentRemoteDescription) {
     // console.log('desc => ', message.video);
-    console.log('=================================== step 10 student set remote description =======================================');
-    console.log('set remote description time: ' + new Date().getTime());
     await pc.setRemoteDescription(new RTCSessionDescription(message.video));
     await pc2.setRemoteDescription(new RTCSessionDescription(message.video2));
   } else if (message.candidate) {
     // 新增對方 IP 候選位置
-    console.log('=================================== step 16 student get candidate =======================================');
-    console.log('student get candidate time: ' + new Date().getTime());
-    console.log('=================================== step 17 student add candidate =======================================');
-    console.log('student add candidate time: ' + new Date().getTime());
-    console.log('add candidate =>', message.candidate);
     pc.addIceCandidate(new RTCIceCandidate(message.candidate));
     pc2.addIceCandidate(new RTCIceCandidate(message.candidate));
   }
@@ -64,19 +57,13 @@ btnCall.addEventListener('click', async function() {
       return;
     }
     // 呼叫 peerConnect 內的 createOffer / createAnswer
-    console.log('=================================== step 3 create offer =======================================');
-    console.log('create offer  time: ' + new Date().getTime());
     offer = await pc[`createOffer`](signalOption);
     offer2 = await pc2[`createOffer`](signalOption);
     // 設定本地流配置
-    console.log('=================================== step 4 set local description =======================================');
-    console.log('set local description time: ' + new Date().getTime());
     await pc.setLocalDescription(offer);
     await pc2.setLocalDescription(offer2);
     desc = pc.localDescription;
     desc2 = pc2.localDescription;
-    console.log('=================================== step 5 send offer sdp =======================================');
-    console.log('send offer sdp time: ' + new Date().getTime());
     socket.emit("peerconnectSignaling", {name: student_name, video: desc, video2: desc2});
   } catch(err) {
     console.log(err);
@@ -93,31 +80,17 @@ async function initPeerConnection() {
       urls: 'stun:stun.l.google.com:19302' // Google's public STUN server
     }]
    };
-   console.log('=================================== step 1 create peer connection =======================================');
-   console.log('create peer connection time: ' + new Date().getTime());
   pc = new RTCPeerConnection(configuration);
   pc2 = new RTCPeerConnection(configuration);
-  console.log('=================================== step 2 add local streams =======================================');
-  console.log('add local streams time: ' + new Date().getTime());
   pc.addStream(localDesktopVideoStream)
   pc2.addStream(localUserVideoStream)
   // 找尋到 ICE 候選位置後，送去 Server 與另一位配對
   pc.onicecandidate = ({ candidate }) => {
     if (!candidate) { return; }
-    console.log('=================================== step 11 student pc1 on ice candidate =======================================');
-    console.log('student on ice candidate time: ' + new Date().getTime());
-    console.log('=================================== step 12 student pc1 send candidate =======================================');
-    console.log('student send candidate time: ' + new Date().getTime());
-    console.log('onIceCandidate => ', candidate);
     socket.emit("peerconnectSignaling", { candidate });
   };
   pc2.onicecandidate = ({ candidate }) => {
     if (!candidate) { return; }
-    console.log('=================================== step 11 student pc2 on ice candidate =======================================');
-    console.log('student on ice candidate time: ' + new Date().getTime());
-    console.log('=================================== step 12 student pc2 send candidate =======================================');
-    console.log('student send candidate time: ' + new Date().getTime());
-    console.log('onIceCandidate => ', candidate);
     socket.emit("peerconnectSignaling", { candidate });
   };
 
@@ -129,13 +102,9 @@ async function initPeerConnection() {
   };
 
   pc.onaddstream = (event) => {
-    console.log('=================================== step ? pc1 student on add stream =======================================');
-    console.log('student on add stream time: ' + new Date().getTime());
     console.log('接收流並顯示於遠端分享桌面！', event);
   }
   pc2.onaddstream = (event) => {
-    console.log('=================================== step ? pc2 student on add stream =======================================');
-    console.log('student on add stream time: ' + new Date().getTime());
     console.log('接收流並顯示於遠端視訊！', event);
   }
   socket.emit('joinRoom' , 'teacher_room');
