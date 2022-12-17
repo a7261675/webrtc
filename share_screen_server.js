@@ -37,14 +37,14 @@ io.on('connection', client => {
     io.to(room).emit('roomBroadcast', '已有新人加入聊天室！');
   });
 
-  client.on('peerconnectSignaling', message => {
+  client.on('studentSendToTeacherSignaling', message => {
     const nowRoom = findNowRoom(client);
-    client.to(nowRoom).emit('peerconnectSignaling', message)
+    client.to(nowRoom).emit('studentSendToTeacherSignaling', message)
   });
 
-  client.on('backVideoSignaling', message => {
+  client.on('teacherSendToStudentSignaling', message => {
     const nowRoom = findNowRoom(client);
-    client.to(nowRoom).emit('backVideoSignaling', message)
+    client.to(nowRoom).emit('teacherSendToStudentSignaling', message)
   });
 
   client.on('disconnect', () => {
