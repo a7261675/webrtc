@@ -42,9 +42,19 @@ io.on('connection', client => {
     client.to(nowRoom).emit('studentSendToTeacherSignaling', message)
   });
 
+  client.on('studentSendToTeacherSignaling2', message => {
+    const nowRoom = findNowRoom(client);
+    client.to(nowRoom).emit('studentSendToTeacherSignaling2', message)
+  });
+
   client.on('teacherSendToStudentSignaling', message => {
     const nowRoom = findNowRoom(client);
     client.to(nowRoom).emit('teacherSendToStudentSignaling', message)
+  });
+
+  client.on('teacherSendToStudentSignaling2', message => {
+    const nowRoom = findNowRoom(client);
+    client.to(nowRoom).emit('teacherSendToStudentSignaling2', message)
   });
 
   client.on('disconnect', () => {
