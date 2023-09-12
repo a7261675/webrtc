@@ -26,7 +26,7 @@
   <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
   <script>
     // 連線到 Server Port
-    const socket = io('https://55cc7a8f.r3.cpolar.top');
+    const socket = io('http://localhost:3000');
     let localstream;
     let shareScreenRTCPeerConnectionInstance_0;
     let shareScreenRTCPeerConnectionInstance_1;
@@ -58,8 +58,6 @@
       // currentRemoteDescription 代表的是最近一次連線成功的相關訊息
       if (message.video && !shareScreenRTCPeerConnectionInstanceList[now].currentRemoteDescription) {
         $(`#studentName_${now}`).text(message.name);
-        // console.log('=================================== step 6 set remote description =======================================');
-        // console.log('set remote description time: ' + new Date().getTime());
         try {
           await shareScreenRTCPeerConnectionInstanceList[now].setRemoteDescription(new RTCSessionDescription(message.video));
           if (!shareScreenRTCPeerConnectionInstanceList[now]) {
@@ -67,16 +65,10 @@
             return;
           }
           // 呼叫 peerConnect 內的 createOffer / createAnswer
-          // console.log('=================================== step 7 create answer description =======================================');
-          // console.log('create answer description time: ' + new Date().getTime());
           shareScreenOfferSdpDescription = await shareScreenRTCPeerConnectionInstanceList[now][`createAnswer`](signalOption);
           // 設定本地流配置
-          // console.log('=================================== step 8 teacher set local description =======================================');
-          // console.log('teacher set local description time: ' + new Date().getTime());
           await shareScreenRTCPeerConnectionInstanceList[now].setLocalDescription(shareScreenOfferSdpDescription);
           shareScreenLocalDescription = shareScreenRTCPeerConnectionInstanceList[now].localDescription;
-          // console.log('=================================== step 9 send answer sdp =======================================');
-          // console.log('send answer sdp time: ' + new Date().getTime());
           socket.emit("teacherSendToStudentSignaling", { video: shareScreenLocalDescription});
         } catch(err) {
           console.log(err);
@@ -85,10 +77,6 @@
       
       if (message.candidate) {
         // 新增對方 IP 候選位置
-        // console.log('=================================== step 13 teacher get candidate =======================================');
-        // console.log('teacher get candidate time: ' + new Date().getTime());
-        // console.log('now: ' + now);
-        // console.log('add candidate =>', message.candidate);
         shareScreenRTCPeerConnectionInstanceList[now].addIceCandidate(new RTCIceCandidate(message.candidate));
       }
     });
@@ -99,40 +87,22 @@
       // currentRemoteDescription 代表的是最近一次連線成功的相關訊息
       if (message.video && !videoCallRTCPeerConnectionInstanceList[now].currentRemoteDescription) {
         $(`#studentName_${now}`).text(message.name);
-        console.log('=================================== step 6 teacher video call set remote description =======================================');
-        console.log('teacher video call set remote description time: ' + new Date().getTime());
-        console.log(now);
         try {
           await videoCallRTCPeerConnectionInstanceList[now].setRemoteDescription(new RTCSessionDescription(message.video));
-          console.log('==================================== finish teacher set remote description ==============================');
-          console.log(videoCallRTCPeerConnectionInstanceList[now].currentRemoteDescription);
           if (!videoCallRTCPeerConnectionInstanceList[now]) {
             console.log('尚未開啟視訊');
             return;
           }
           // 呼叫 peerConnect 內的 createOffer / createAnswer
-          console.log('=================================== step 7 teacher video call create answer description =======================================');
-          console.log('teacher video call create answer description time: ' + new Date().getTime());
           videoCallOfferSdpDescription = await videoCallRTCPeerConnectionInstanceList[now][`createAnswer`](signalOption);
           // 設定本地流配置
-          console.log('=================================== step 8 teacher video call set local description =======================================');
-          console.log('teacher video call set local description time: ' + new Date().getTime());
           await videoCallRTCPeerConnectionInstanceList[now].setLocalDescription(videoCallOfferSdpDescription);
           videoCallLocalDescription = videoCallRTCPeerConnectionInstanceList[now].localDescription;
-          console.log('=================================== step 9 teacher video call send answer sdp =======================================');
-          console.log('teacher video call send answer sdp time: ' + new Date().getTime());
           socket.emit("teacherSendToStudentSignaling2", { video: videoCallLocalDescription });
         } catch(err) {
           console.log(err);
         }
       }else if (message.candidate) {
-        // 新增對方 IP 候選位置
-        console.log('=================================== step 13 teacher video call get candidate =======================================');
-        console.log('teacher video call get candidate time: ' + new Date().getTime());
-        console.log('now: ' + now);
-        console.log('teacher video call add candidate =>', message.candidate);
-        console.log('=================================== teacher video remote description =====================================');
-        console.log(videoCallRTCPeerConnectionInstanceList[now].currentRemoteDescription);
         videoCallRTCPeerConnectionInstanceList[now].addIceCandidate(new RTCIceCandidate(message.candidate));
       }
     });
@@ -154,21 +124,10 @@
       shareScreenRTCPeerConnectionInstanceList[i].addStream(localstream.clone())
       shareScreenRTCPeerConnectionInstanceList[i].onicecandidate = ({ candidate }) => {
         if (!candidate) { return; }
-         
-        // console.log('=================================== step 14 teacher on ice candidate =======================================');
-        // console.log('teacher on ice candidate time: ' + new Date().getTime());
-        // console.log('=================================== step 15 teacher send candidate =======================================');
-        // console.log('teacher send candidate time: ' + new Date().getTime());
-        // console.log('now: ' + now);
-        // console.log('onIceCandidate => ', candidate);
         socket.emit("teacherSendToStudentSignaling", { candidate: candidate });
       };
       shareScreenRTCPeerConnectionInstanceList[i].oniceconnectionstatechange = (evt) => {
-        // console.log('ICE 伺服器狀態變更 => ', evt.target.iceConnectionState);
-        // console.log('狀態變更時間: ' + new Date().getTime());
         if (evt.target.iceConnectionState == 'connected') {
-          // console.log('連線完成時間: ' + new Date().getTime());
-          // console.log('now: ' + now);
           cnt++;
           if ((cnt > 0) && (cnt % 2 == 0)) {
             now++;
@@ -176,12 +135,9 @@
         }
       };
       shareScreenRTCPeerConnectionInstanceList[i].onaddstream = (event) => {
-        // console.log('=================================== step ? teacher on add stream =======================================');
-        // console.log('teacher on add stream time: ' + new Date().getTime());
         var remoteShareScreenVideo = document.querySelector(`#remoteShareScreenVideo_${i}`); 
         if(!remoteShareScreenVideo.srcObject && event.stream){
           remoteShareScreenVideo.srcObject = event.stream;
-          // console.log('接收流並顯示於遠端分享桌面！', event);
         }
         remoteShareScreenVideo.addEventListener('click', async function() {
             console.log(remoteShareScreenVideo);
@@ -205,8 +161,6 @@
       videoCallRTCPeerConnectionInstanceList[i].oniceconnectionstatechange = (evt) => {
         console.log('視訊伺服器狀態變更 => ', evt.target.iceConnectionState);
         if (evt.target.iceConnectionState == 'connected') {
-          // console.log('連線完成時間: ' + new Date().getTime());
-          // console.log('now: ' + now);
           cnt++;
           if ((cnt > 0) && (cnt % 2 == 0)) {
             now++;
