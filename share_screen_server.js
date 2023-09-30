@@ -1,9 +1,23 @@
 // Node.js
 const port = process.env.PORT || 3000;
+var bodyParser = require('body-parser');
 var app = require('express')();
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({
+  extended: true
+}));
 const server = require('http').Server(app).listen(port, () => {
   console.log(`Listening on port ${port}...`);
 });
+var mysql  = require('mysql');
+var connection = mysql.createConnection({     
+  host     : 'localhost',
+  user     : 'admin',              
+  password : '123456',       
+  port: '3306',              
+  database: 'admin_new' 
+}); 
+connection.connect();
 
 app.get('/s', function(req, res){
   res.sendFile(__dirname + '/student_screen.html');
@@ -11,6 +25,24 @@ app.get('/s', function(req, res){
 
 app.get('/t', function(req, res){
   res.sendFile(__dirname + '/teacher_screen.html');
+});
+
+app.get('/student_list_window', function(req, res){
+  res.sendFile(__dirname + '/student_list_window.html');
+});
+
+app.post('/add_student_data', function(req, res){
+  student_id = req.body.student_data.id;
+  student_name = req.body.student_data.name;
+  var sql = 'INSERT INTO student_data (student_id, student_name) VALUES (' + student_id + ', "'+ student_name +'");';
+  console.log(sql);
+  connection.query(sql,function (err, result) {
+      if(err){
+        console.log('[INSERT STUDENT DATA ERROR] - ',err.message);
+        res.json({message: '[INSERT STUDENT DATA ERROR] - '+err.message});
+      }
+      res.json({result: result.affectedRows});
+  });
 });
 
 room_list = new Array();

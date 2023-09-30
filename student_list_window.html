@@ -1,0 +1,45 @@
+<html>
+    <head>
+    </head>
+    <body>
+      <div>
+        <label id="student_id_label">學號</label>
+        <input type="text" name="student_id_input" id="student_id_input" placeholder="請輸入學號">
+        <label id="student_name_label">學生姓名</label>
+        <input type="text" name="student_name_input" id="student_name_input" placeholder="請輸入學生姓名">
+        <button id="add_student_list_btn">新增學生資料</button>
+      </div>
+      <div id="student_list">
+        <div id="student_list_head">
+            <p>學號               姓名</p>
+        </div>
+        <div id="student_list_body">
+        </div>
+      </div>
+    </body>
+    <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+    <script>
+        $("#add_student_list_btn").click(function() {
+            var student = {};
+            student.id = $('input[name=student_id_input]').val();
+            student.name = $('input[name=student_name_input]').val();
+            $.ajax({
+                data: {student_data: student},
+                url: '/add_student_data', 
+                dataType: 'json',
+                method: 'post',
+                cache: false,
+                timeout: 5000
+            })
+            .done(function(data){
+                if(data.result == 1) {
+                    $("#student_list_body").prepend("<p>"+student.id+"                     "+student.name+"</p>")
+                }
+            })
+            .fail(function(data){
+                console.log(data);
+                console.log("post failed!!!!!");
+            });
+        });
+    </script>
+</html>

@@ -3,6 +3,9 @@
   </head>
   <body>
     <div>
+      <button id="student_list_btn">查看學生名單</button>
+    </div>
+    <div>
       <label id = "studentName_0"></label>
         <video width="500" height="500" autoplay
           id="remoteShareScreenVideo_0" playsinline></video>
@@ -25,6 +28,9 @@
   <script src="/socket.io/socket.io.js"></script>
   <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
   <script>
+    $("#student_list_btn").click(function() {
+      window.open('student_list_window', "", "width=700,height=500");
+    });
     // 連線到 Server Port
     const socket = io('http://localhost:3000');
     let localstream;
