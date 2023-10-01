@@ -3,6 +3,14 @@
   </head>
   <body>
     <div>
+      <label id="student_id_label">學號</label>
+        <input type="text" name="student_id_input" id="student_id_input" placeholder="請輸入學號">
+        <label id="student_name_label">學生姓名</label>
+        <input type="text" name="student_name_input" id="student_name_input" placeholder="請輸入學生姓名">
+        <button id="authenticate_student_btn">驗證學生身份</button>
+        <p id="authenticate_student_error_message"></p>
+    </div>
+    <div>
       <label id = "studentName"></label>
         <video width="1000" height="1000" autoplay
           id="shareScreenVideo" muted playsinline></video>
@@ -10,6 +18,7 @@
           id="videoCallVideo" muted playsinline></video>
 
           <button class="sendStreamRequestBtn">send stream</button>
+    </div>
   </body>
   <script src="/socket.io/socket.io.js"></script>
   <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
@@ -119,8 +128,35 @@
       socket.emit('joinRoom' , 'teacher_room');
     }
 
-    initPeerConnection();
-
+    $("#authenticate_student_btn").click(function() {
+            $("#authenticate_student_error_message").text("");
+            var student = {};
+            student.id = $('input[name=student_id_input]').val();
+            student.name = $('input[name=student_name_input]').val();
+            $.ajax({
+                data: {student_data: student},
+                url: '/authenticate_student_data', 
+                dataType: 'json',
+                method: 'post',
+                cache: false,
+                timeout: 5000
+            })
+            .done(function(data){
+              if(data.result.length == 0) {
+                $("#authenticate_student_error_message").text("學號或姓名錯誤");
+              } else {
+                student_data_in_database = data.result[0];
+                if(student_data_in_database.student_id == student.id && student_data_in_database.student_name == student.name) {
+                  initPeerConnection();
+                }
+              }
+              console.log("post success");
+            })
+            .fail(function(data){
+                console.log(data);
+                console.log("post failed!!!!!");
+            });
+        });
   </script>
 </html>
 

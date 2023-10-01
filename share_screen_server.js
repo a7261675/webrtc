@@ -34,7 +34,7 @@ app.get('/student_list_window', function(req, res){
 app.post('/add_student_data', function(req, res){
   student_id = req.body.student_data.id;
   student_name = req.body.student_data.name;
-  var sql = 'INSERT INTO student_data (student_id, student_name) VALUES (' + student_id + ', "'+ student_name +'");';
+  var sql = 'INSERT INTO student_data (student_id, student_name) VALUES ("' + student_id + '", "'+ student_name +'");';
   console.log(sql);
   connection.query(sql,function (err, result) {
       if(err){
@@ -42,6 +42,33 @@ app.post('/add_student_data', function(req, res){
         res.json({message: '[INSERT STUDENT DATA ERROR] - '+err.message});
       }
       res.json({result: result.affectedRows});
+  });
+});
+
+app.get('/get_student_data', function(req, res){
+  var sql = 'SELECT * FROM student_data;';
+  console.log(sql);
+  connection.query(sql,function (err, result) {
+      if(err){
+        console.log('[SELECT FROM STUDENT DATA ERROR] - ',err.message);
+        res.json({message: '[SELECT FROM STUDENT DATA ERROR] - '+err.message});
+      }
+      res.json({student_data_list: result});
+  });
+});
+
+app.post('/authenticate_student_data', function(req, res){
+  student_id = req.body.student_data.id;
+  student_name = req.body.student_data.name;
+  var sql = 'SELECT * FROM student_data WHERE student_id = "'+ student_id + '" AND student_name = "' + student_name +'";';
+  console.log(sql);
+  connection.query(sql,function (err, result) {
+      if(err){
+        console.log('[AUTHENTICATE STUDENT DATA ERROR] - ',err.message);
+        res.json({message: '[AUTHENTICATE STUDENT DATA ERROR] - '+err.message});
+      }
+      console.log(result);
+      res.json({result: result});
   });
 });
 
