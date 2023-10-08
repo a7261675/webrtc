@@ -11,7 +11,6 @@
         <p id="authenticate_student_error_message"></p>
     </div>
     <div>
-      <label id = "studentName"></label>
         <video width="1000" height="1000" autoplay
           id="shareScreenVideo" muted playsinline></video>
         <video width="1000" height="1000" autoplay
@@ -34,9 +33,6 @@
     let shareScreenRTCPeerConnectionInstance;
     let videoCallRTCPeerConnectionInstance;
 
-    // const studentName = prompt('請輸入你的名字');
-    // $('#studentName').text(studentName);
-    const studentName = new Date();
     const sendStreamRequestBtn = document.querySelector('.sendStreamRequestBtn');
 
     const signalOption = {
@@ -81,8 +77,16 @@
         await videoCallRTCPeerConnectionInstance.setLocalDescription(videoCallOfferSdpDescription);
         shareScreenLocalDescription = shareScreenRTCPeerConnectionInstance.localDescription;
         videoCallLocalDescription = videoCallRTCPeerConnectionInstance.localDescription;
-        socket.emit("studentSendToTeacherSignaling", {name: studentName, video: shareScreenLocalDescription});
-        socket.emit("studentSendToTeacherSignaling2", {name: studentName, video: videoCallLocalDescription});
+        socket.emit("studentSendToTeacherSignaling", {
+          studentId: $('input[name=student_id_input]').val(), 
+          studentName: $('input[name=student_name_input]').val(), 
+          video: shareScreenLocalDescription
+        });
+        socket.emit("studentSendToTeacherSignaling2", {
+          studentId: $('input[name=student_id_input]').val(), 
+          studentName: $('input[name=student_name_input]').val(), 
+          video: videoCallLocalDescription
+        });
       } catch(err) {
         console.log(err);
       }

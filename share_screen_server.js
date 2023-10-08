@@ -41,7 +41,8 @@ app.post('/add_student_data', function(req, res){
         console.log('[INSERT STUDENT DATA ERROR] - ',err.message);
         res.json({message: '[INSERT STUDENT DATA ERROR] - '+err.message});
       }
-      res.json({result: result.affectedRows});
+      console.log(result);
+      res.json({result: result.affectedRows, id: result.insertId});
   });
 });
 
@@ -54,6 +55,19 @@ app.get('/get_student_data', function(req, res){
         res.json({message: '[SELECT FROM STUDENT DATA ERROR] - '+err.message});
       }
       res.json({student_data_list: result});
+  });
+});
+
+app.delete('/delete_student_data/:student_id', function(req, res){
+  var sql = 'DELETE FROM student_data WHERE id = ' + req.params.student_id + ';';
+  console.log(sql);
+  connection.query(sql,function (err, result) {
+      if(err){
+        console.log('[DELETE FROM STUDENT DATA ERROR] - ',err.message);
+        res.json({message: '[DELETE FROM STUDENT DATA ERROR] - '+err.message});
+      }
+      console.log(result);
+      res.json({result: result.affectedRows});
   });
 });
 

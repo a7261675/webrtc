@@ -33,7 +33,10 @@
             })
             .done(function(data){
                 if(data.result == 1) {
-                    $("#student_list_body").prepend("<p>"+student.id+"                     "+student.name+"</p>")
+                    $("#student_list_body").prepend(
+                        "<p>"+ student.id + " " + student.name+"</p>" + 
+                        "<button onclick=\"delete_student_data(" + data.id + ")\">X</button>"
+                    );
                 }
             })
             .fail(function(data){
@@ -42,6 +45,24 @@
             });
         });
 
+        function delete_student_data(i) {
+            $.ajax({
+                url: '/delete_student_data/' + i, 
+                type: 'delete',
+                contentType: 'application/json'
+            })
+            .done(function(data){
+                if(data.result == 1) {
+                    $("#student_list_body").empty();
+                    get_student_list();
+                }
+                console.log("delete student data success");
+            })
+            .fail(function(data){
+                console.log(data);
+                console.log("delete student data failed!!!!!");
+            });
+        }
 
         function get_student_list() {
             $.ajax({
@@ -52,7 +73,10 @@
             .done(function(data){
                 student_data_list = data.student_data_list;
                 student_data_list.forEach(function(student_data, index, student_data_list) {
-                    $("#student_list_body").prepend("<p>"+student_data.student_id+"                     "+student_data.student_name+"</p>");
+                    $("#student_list_body").prepend(
+                        "<p>"+student_data.student_id + " " + student_data.student_name+"</p>" + 
+                        "<button onclick=\"delete_student_data(" + student_data.id + ")\">X</button>"
+                    );
                 });
                 console.log(student_data_list);
                 console.log("get student data success");

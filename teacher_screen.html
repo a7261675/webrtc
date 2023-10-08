@@ -6,19 +6,19 @@
       <button id="student_list_btn">查看學生名單</button>
     </div>
     <div>
-      <label id = "studentName_0"></label>
+      <label id = "studentData_0"></label>
         <video width="500" height="500" autoplay
           id="remoteShareScreenVideo_0" playsinline></video>
         <video width="500" height="500" autoplay
           id="rmeoteVideoCallVideo_0" playsinline></video>
           
-          <label id = "studentName_1"></label>
+          <label id = "studentData_1"></label>
         <video width="500" height="500" autoplay
           id="remoteShareScreenVideo_1" playsinline></video>
           <video width="500" height="500" autoplay
           id="rmeoteVideoCallVideo_1" playsinline></video>
           
-          <label id = "studentName_2"></label>
+          <label id = "studentData_2"></label>
         <video width="500" height="500" autoplay
           id="remoteShareScreenVideo_2" playsinline></video>
           <video width="500" height="500" autoplay
@@ -63,7 +63,7 @@
       // desc 指的是 Offer 與 Answer
       // currentRemoteDescription 代表的是最近一次連線成功的相關訊息
       if (message.video && !shareScreenRTCPeerConnectionInstanceList[now].currentRemoteDescription) {
-        $(`#studentName_${now}`).text(message.name);
+        $(`#studentData_${now}`).text(message.studentId + ': ' + message.studentName);
         try {
           await shareScreenRTCPeerConnectionInstanceList[now].setRemoteDescription(new RTCSessionDescription(message.video));
           if (!shareScreenRTCPeerConnectionInstanceList[now]) {
@@ -92,7 +92,7 @@
       // desc 指的是 Offer 與 Answer
       // currentRemoteDescription 代表的是最近一次連線成功的相關訊息
       if (message.video && !videoCallRTCPeerConnectionInstanceList[now].currentRemoteDescription) {
-        $(`#studentName_${now}`).text(message.name);
+        $(`#studentData_${now}`).text(message.studentId + ': ' + message.studentName);
         try {
           await videoCallRTCPeerConnectionInstanceList[now].setRemoteDescription(new RTCSessionDescription(message.video));
           if (!videoCallRTCPeerConnectionInstanceList[now]) {
