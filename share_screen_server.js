@@ -19,11 +19,11 @@ var connection = mysql.createConnection({
 }); 
 connection.connect();
 
-app.get('/s', function(req, res){
+app.get('/student_page', function(req, res){
   res.sendFile(__dirname + '/student_screen.html');
 });
 
-app.get('/t', function(req, res){
+app.get('/teacher_page', function(req, res){
   res.sendFile(__dirname + '/teacher_screen.html');
 });
 
@@ -76,6 +76,7 @@ app.post('/authenticate_student_data', function(req, res){
   student_name = req.body.student_data.name;
   var sql = 'SELECT * FROM student_data WHERE student_id = "'+ student_id + '" AND student_name = "' + student_name +'";';
   console.log(sql);
+  console.log('sdfdsfdsfdsfdsfdsfsd');
   connection.query(sql,function (err, result) {
       if(err){
         console.log('[AUTHENTICATE STUDENT DATA ERROR] - ',err.message);
@@ -110,24 +111,14 @@ io.on('connection', client => {
     io.to(room).emit('roomBroadcast', '已有新人加入聊天室！');
   });
 
-  client.on('studentSendToTeacherSignaling', message => {
+  client.on('student_to_teacher', video_message => {
     const nowRoom = findNowRoom(client);
-    client.to(nowRoom).emit('studentSendToTeacherSignaling', message)
+    client.to(nowRoom).emit('student_to_teacher', video_message)
   });
 
-  client.on('studentSendToTeacherSignaling2', message => {
+  client.on('teacher_to_student', video_message => {
     const nowRoom = findNowRoom(client);
-    client.to(nowRoom).emit('studentSendToTeacherSignaling2', message)
-  });
-
-  client.on('teacherSendToStudentSignaling', message => {
-    const nowRoom = findNowRoom(client);
-    client.to(nowRoom).emit('teacherSendToStudentSignaling', message)
-  });
-
-  client.on('teacherSendToStudentSignaling2', message => {
-    const nowRoom = findNowRoom(client);
-    client.to(nowRoom).emit('teacherSendToStudentSignaling2', message)
+    client.to(nowRoom).emit('teacher_to_student', video_message)
   });
 
   client.on('disconnect', () => {

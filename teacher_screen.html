@@ -5,200 +5,131 @@
     <div>
       <button id="student_list_btn">查看學生名單</button>
     </div>
-    <div>
-      <label id = "studentData_0"></label>
-        <video width="500" height="500" autoplay
-          id="remoteShareScreenVideo_0" playsinline></video>
-        <video width="500" height="500" autoplay
-          id="rmeoteVideoCallVideo_0" playsinline></video>
-          
-          <label id = "studentData_1"></label>
-        <video width="500" height="500" autoplay
-          id="remoteShareScreenVideo_1" playsinline></video>
-          <video width="500" height="500" autoplay
-          id="rmeoteVideoCallVideo_1" playsinline></video>
-          
-          <label id = "studentData_2"></label>
-        <video width="500" height="500" autoplay
-          id="remoteShareScreenVideo_2" playsinline></video>
-          <video width="500" height="500" autoplay
-          id="rmeoteVideoCallVideo_2" playsinline></video>
+    <div id="student_video_list">
     </div>
   </body>
   <script src="/socket.io/socket.io.js"></script>
   <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
   <script>
-    $("#student_list_btn").click(function() {
-      window.open('student_list_window', "", "width=700,height=500");
-    });
     // 連線到 Server Port
     const socket = io('http://localhost:3000');
-    let localstream;
-    let shareScreenRTCPeerConnectionInstance_0;
-    let shareScreenRTCPeerConnectionInstance_1;
-    let shareScreenRTCPeerConnectionInstance_2;
-    let videoCallRTCPeerConnectionInstance_0;
-    let videoCallRTCPeerConnectionInstance_1;
-    let videoCallRTCPeerConnectionInstance_2;
-    let shareScreenRTCPeerConnectionInstanceList = [
-      shareScreenRTCPeerConnectionInstance_0, 
-      shareScreenRTCPeerConnectionInstance_1, 
-      shareScreenRTCPeerConnectionInstance_2
-    ];
-    let videoCallRTCPeerConnectionInstanceList = [
-      videoCallRTCPeerConnectionInstance_0, 
-      videoCallRTCPeerConnectionInstance_1, 
-      videoCallRTCPeerConnectionInstance_2
-    ];
-    let now = 0;
-    let cnt = 0;
-
     const signalOption = {
       offerToReceiveAudio: 1, // 是否傳送聲音流給對方
       offerToReceiveVideo: 1, // 是否傳送影像流給對方
     };
+    const configuration = {
+      iceServers: [{
+        urls: 'stun:stun.l.google.com:19302' // Google's public STUN server
+      }]
+    };
+
+    const configuration2 = {
+      iceServers: [{
+        urls: 'stun:stun.ideasip.com'
+      }]
+    };
+
+    let share_screen_RTC_peer_connection_instance_list;
+    let video_call_RTC_peer_connection_instance_list;
 
     // Client
-    socket.on('studentSendToTeacherSignaling', async (message) => {
-      // desc 指的是 Offer 與 Answer
-      // currentRemoteDescription 代表的是最近一次連線成功的相關訊息
-      if (message.video && !shareScreenRTCPeerConnectionInstanceList[now].currentRemoteDescription) {
-        $(`#studentData_${now}`).text(message.studentId + ': ' + message.studentName);
-        try {
-          await shareScreenRTCPeerConnectionInstanceList[now].setRemoteDescription(new RTCSessionDescription(message.video));
-          if (!shareScreenRTCPeerConnectionInstanceList[now]) {
-            console.log('尚未開啟視訊');
-            return;
-          }
-          // 呼叫 peerConnect 內的 createOffer / createAnswer
-          shareScreenOfferSdpDescription = await shareScreenRTCPeerConnectionInstanceList[now][`createAnswer`](signalOption);
-          // 設定本地流配置
-          await shareScreenRTCPeerConnectionInstanceList[now].setLocalDescription(shareScreenOfferSdpDescription);
-          shareScreenLocalDescription = shareScreenRTCPeerConnectionInstanceList[now].localDescription;
-          socket.emit("teacherSendToStudentSignaling", { video: shareScreenLocalDescription});
-        } catch(err) {
-          console.log(err);
+    socket.on('student_to_teacher', async (video_message) => {
+      if(video_message.student_id) {
+        if($("#" + video_message.student_id).length <= 0) {
+          createStudentVideoDiv(video_message.student_id);
         }
-      }
-      
-      if (message.candidate) {
-        // 新增對方 IP 候選位置
-        shareScreenRTCPeerConnectionInstanceList[now].addIceCandidate(new RTCIceCandidate(message.candidate));
+        $(`${video_message.student_id}_label`).text(video_message.student_id + ': ' + video_message.student_name);
+        socket.emit("teacher_to_student", {
+          student_id: video_message.student_id, 
+          student_name: video_message.student_name, 
+          share_screen_video: await createPeerConnectionInstance(video_message, "share_screen"),
+          video_call_video: await createPeerConnectionInstance(video_message, "video_call"),
+        });
       }
     });
 
-    // Client
-    socket.on('studentSendToTeacherSignaling2', async (message) => {
-      // desc 指的是 Offer 與 Answer
-      // currentRemoteDescription 代表的是最近一次連線成功的相關訊息
-      if (message.video && !videoCallRTCPeerConnectionInstanceList[now].currentRemoteDescription) {
-        $(`#studentData_${now}`).text(message.studentId + ': ' + message.studentName);
+    async function createPeerConnectionInstance(video_message, type) {
+        localstream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
+        if(type == 'share_screen') {
+          var peerConnectionInstance = new RTCPeerConnection(configuration);
+        } else if(type == 'video_call') {
+          var peerConnectionInstance = new RTCPeerConnection(configuration2);
+        }
+        peerConnectionInstance.addStream(localstream.clone())
+        // console.log(share_screen_RTC_peer_connection_instance_list);
+        peerConnectionInstance.onicecandidate = ({ candidate }) => {
+          if (!candidate) { return; }
+          socket.emit("teacher_to_student", {
+            candidate: candidate
+          });
+        };
+        peerConnectionInstance.oniceconnectionstatechange = (evt) => {
+          console.log('學生: ', video_message.student_id, ', 類別: ', type, ', ICE 伺服器狀態變更 => ', evt.target.iceConnectionState);
+          if (evt.target.iceConnectionState == 'connected') {
+            console.log('學生: ', video_message.student_id, ', 類別: ', type, ', ICE 伺服器成功連線');
+          }
+        };
+        
+        if(type == 'share_screen') {
+          video_element = document.querySelector(`[id='${video_message.student_id}_share_screen_video']`);
+        } else if(type == 'video_call') {
+          video_element = document.querySelector(`[id='${video_message.student_id}_video_call_video']`);
+        } else {
+          console.log('error video type!!!!');
+        }
+        peerConnectionInstance.onaddstream = (event) => {
+          if(!video_element.srcObject && event.stream){
+            video_element.srcObject = event.stream;
+          }
+          video_element.click(function() {
+              console.log(video_element);
+              if (video_element.requestFullscreen) {
+                video_element.requestFullscreen();
+              } else if (video_element.webkitRequestFullscreen) { /* Safari */
+                video_element.webkitRequestFullscreen();
+              } else if (video_element.msRequestFullscreen) { /* IE11 */
+                video_element.msRequestFullscreen();
+              }
+          });
+        }
+        // desc 指的是 Offer 與 Answer
+        // currentRemoteDescription 代表的是最近一次連線成功的相關訊息
         try {
-          await videoCallRTCPeerConnectionInstanceList[now].setRemoteDescription(new RTCSessionDescription(message.video));
-          if (!videoCallRTCPeerConnectionInstanceList[now]) {
-            console.log('尚未開啟視訊');
-            return;
+          if (type == 'share_screen' && video_message.share_screen_video && !peerConnectionInstance.currentRemoteDescription) {
+              await peerConnectionInstance.setRemoteDescription(new RTCSessionDescription(video_message.share_screen_video));
+          } else if(type == 'video_call' && video_message.video_call_video && !peerConnectionInstance.currentRemoteDescription) {
+              await peerConnectionInstance.setRemoteDescription(new RTCSessionDescription(video_message.video_call_video));
           }
           // 呼叫 peerConnect 內的 createOffer / createAnswer
-          videoCallOfferSdpDescription = await videoCallRTCPeerConnectionInstanceList[now][`createAnswer`](signalOption);
+          var peerOfferSdpDescription = await peerConnectionInstance[`createAnswer`](signalOption);
           // 設定本地流配置
-          await videoCallRTCPeerConnectionInstanceList[now].setLocalDescription(videoCallOfferSdpDescription);
-          videoCallLocalDescription = videoCallRTCPeerConnectionInstanceList[now].localDescription;
-          socket.emit("teacherSendToStudentSignaling2", { video: videoCallLocalDescription });
+          await peerConnectionInstance.setLocalDescription(peerOfferSdpDescription);
+
+          if (video_message.candidate) {
+            // 新增對方 IP 候選位置
+            peerConnectionInstance.addIceCandidate(new RTCIceCandidate(video_message.candidate));
+          }
+
+          return peerConnectionInstance.localDescription;
         } catch(err) {
           console.log(err);
         }
-      }else if (message.candidate) {
-        videoCallRTCPeerConnectionInstanceList[now].addIceCandidate(new RTCIceCandidate(message.candidate));
-      }
-    });
-
-    async function initPeerConnection(i) {
-      localstream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true })
-      const configuration = {
-        iceServers: [{
-          urls: 'stun:stun.l.google.com:19302' // Google's public STUN server
-        }]
-      };
-
-      const configuration2 = {
-        iceServers: [{
-          urls: 'stun:stun.ideasip.com'
-        }]
-      };
-      shareScreenRTCPeerConnectionInstanceList[i] = new RTCPeerConnection(configuration);
-      shareScreenRTCPeerConnectionInstanceList[i].addStream(localstream.clone())
-      shareScreenRTCPeerConnectionInstanceList[i].onicecandidate = ({ candidate }) => {
-        if (!candidate) { return; }
-        socket.emit("teacherSendToStudentSignaling", { candidate: candidate });
-      };
-      shareScreenRTCPeerConnectionInstanceList[i].oniceconnectionstatechange = (evt) => {
-        if (evt.target.iceConnectionState == 'connected') {
-          cnt++;
-          if ((cnt > 0) && (cnt % 2 == 0)) {
-            now++;
-          }
-        }
-      };
-      shareScreenRTCPeerConnectionInstanceList[i].onaddstream = (event) => {
-        var remoteShareScreenVideo = document.querySelector(`#remoteShareScreenVideo_${i}`); 
-        if(!remoteShareScreenVideo.srcObject && event.stream){
-          remoteShareScreenVideo.srcObject = event.stream;
-        }
-        remoteShareScreenVideo.addEventListener('click', async function() {
-            console.log(remoteShareScreenVideo);
-            if (remoteShareScreenVideo.requestFullscreen) {
-              remoteShareScreenVideo.requestFullscreen();
-            } else if (remoteShareScreenVideo.webkitRequestFullscreen) { /* Safari */
-              remoteShareScreenVideo.webkitRequestFullscreen();
-            } else if (remoteShareScreenVideo.msRequestFullscreen) { /* IE11 */
-              remoteShareScreenVideo.msRequestFullscreen();
-            }
-        });
-      }
-
-      videoCallRTCPeerConnectionInstanceList[i] = new RTCPeerConnection(configuration2);
-      videoCallRTCPeerConnectionInstanceList[i].addStream(localstream.clone())
-      videoCallRTCPeerConnectionInstanceList[i].onicecandidate = ({ candidate }) => {
-        if (!candidate) { return; }
-        console.log('onIceCandidate 2 => ', candidate);
-        socket.emit("teacherSendToStudentSignaling2", { candidate: candidate });
-      };
-      videoCallRTCPeerConnectionInstanceList[i].oniceconnectionstatechange = (evt) => {
-        console.log('視訊伺服器狀態變更 => ', evt.target.iceConnectionState);
-        if (evt.target.iceConnectionState == 'connected') {
-          cnt++;
-          if ((cnt > 0) && (cnt % 2 == 0)) {
-            now++;
-          }
-        }
-      };
-      videoCallRTCPeerConnectionInstanceList[i].onaddstream = (event) => {
-        var rmeoteVideoCallVideo = document.querySelector(`#rmeoteVideoCallVideo_${i}`); 
-        if(!rmeoteVideoCallVideo.srcObject && event.stream){
-          rmeoteVideoCallVideo.srcObject = event.stream;
-          console.log('接收流並顯示於遠端視訊！', event);
-        }
-        rmeoteVideoCallVideo.addEventListener('click', async function() {
-            console.log(rmeoteVideoCallVideo);
-            if (rmeoteVideoCallVideo.requestFullscreen) {
-              rmeoteVideoCallVideo.requestFullscreen();
-            } else if (rmeoteVideoCallVideo.webkitRequestFullscreen) { /* Safari */
-              rmeoteVideoCallVideo.webkitRequestFullscreen();
-            } else if (rmeoteVideoCallVideo.msRequestFullscreen) { /* IE11 */
-              rmeoteVideoCallVideo.msRequestFullscreen();
-            }
-        });
-      }
     }
 
-    initPeerConnection(0);
-    initPeerConnection(1);
-    initPeerConnection(2);
-    socket.emit('joinRoom' , 'teacher_room');
+    function createStudentVideoDiv(student_id) {
+      $("#student_video_list").append(
+        "<div id=\"" + student_id + "\">" +
+        "<label id = \"" + student_id + "_label\"></label>" + 
+        "<video width=\"500\" height=\"500\" autoplay id=\"" + student_id + "_share_screen_video\" playsinline></video>" + 
+        "<video width=\"500\" height=\"500\" autoplay id=\"" + student_id + "_video_call_video\" playsinline></video>" + 
+        "</div>"
+      );
+    }
+    
+    $("#student_list_btn").click(function() {
+      window.open('student_list_window', "", "width=700,height=500");
+    });
 
+    socket.emit('joinRoom' , 'teacher_room');
   </script>
 </html>
-
-
-
