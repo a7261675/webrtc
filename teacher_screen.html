@@ -12,7 +12,7 @@
   <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
   <script>
     // 連線到 Server Port
-    const socket = io('http://localhost:3000');
+    const socket = io('http://localhost:7000');
     const signalOption = {
       offerToReceiveAudio: 1, // 是否傳送聲音流給對方
       offerToReceiveVideo: 1, // 是否傳送影像流給對方
@@ -23,11 +23,11 @@
       }]
     };
 
-    const configuration2 = {
-      iceServers: [{
-        urls: 'stun:stun.ideasip.com'
-      }]
-    };
+    // const configuration2 = {
+    //   iceServers: [{
+    //     urls: 'stun:stun.ideasip.com'
+    //   }]
+    // };
 
     let share_screen_RTC_peer_connection_instance_list;
     let video_call_RTC_peer_connection_instance_list;
@@ -39,37 +39,45 @@
           createStudentVideoDiv(video_message.student_id);
         }
         $(`${video_message.student_id}_label`).text(video_message.student_id + ': ' + video_message.student_name);
+        var tmp1 = await createPeerConnectionInstance('share_screen');
+        var tmp2 = await createPeerConnectionInstance('video_call');
         socket.emit("teacher_to_student", {
           student_id: video_message.student_id, 
           student_name: video_message.student_name, 
-          share_screen_video: await createPeerConnectionInstance(video_message, "share_screen"),
-          video_call_video: await createPeerConnectionInstance(video_message, "video_call"),
+          share_screen_video: tmp1,
+          video_call_video: tmp2,
         });
       }
     });
 
     async function createPeerConnectionInstance(video_message, type) {
         localstream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
-        if(type == 'share_screen') {
-          var peerConnectionInstance = new RTCPeerConnection(configuration);
-        } else if(type == 'video_call') {
-          var peerConnectionInstance = new RTCPeerConnection(configuration2);
-        }
+        console.log('===== 1 create connection =====');
+        console.log('類別: ', type, ', 時間: ', new Date().getTime());
+        var peerConnectionInstance = new RTCPeerConnection(configuration);
+        console.log('===== 2 add stream =====');
+        console.log('類別: ', type, ', 時間: ', new Date().getTime());
         peerConnectionInstance.addStream(localstream.clone())
         // console.log(share_screen_RTC_peer_connection_instance_list);
         peerConnectionInstance.onicecandidate = ({ candidate }) => {
+          console.log('===== 7 on ice candidate =====');
+          console.log('類別: ', type, ', 時間: ', new Date().getTime());
           if (!candidate) { return; }
           socket.emit("teacher_to_student", {
+            type: type,
             candidate: candidate
           });
         };
         peerConnectionInstance.oniceconnectionstatechange = (evt) => {
-          console.log('學生: ', video_message.student_id, ', 類別: ', type, ', ICE 伺服器狀態變更 => ', evt.target.iceConnectionState);
+          console.log('===== 4 on ice connection state change =====');
+          console.log('類別: ', type, ', 時間: ', new Date().getTime());
+          console.log('ICE 伺服器狀態變更 => ', evt.target.iceConnectionState);
           if (evt.target.iceConnectionState == 'connected') {
             console.log('學生: ', video_message.student_id, ', 類別: ', type, ', ICE 伺服器成功連線');
           }
         };
         
+        let video_element;
         if(type == 'share_screen') {
           video_element = document.querySelector(`[id='${video_message.student_id}_share_screen_video']`);
         } else if(type == 'video_call') {
@@ -78,34 +86,47 @@
           console.log('error video type!!!!');
         }
         peerConnectionInstance.onaddstream = (event) => {
+          console.log('===== 4 on add stream =====');  
           if(!video_element.srcObject && event.stream){
+            console.log('新增串流成功');
             video_element.srcObject = event.stream;
           }
-          video_element.click(function() {
-              console.log(video_element);
-              if (video_element.requestFullscreen) {
-                video_element.requestFullscreen();
-              } else if (video_element.webkitRequestFullscreen) { /* Safari */
-                video_element.webkitRequestFullscreen();
-              } else if (video_element.msRequestFullscreen) { /* IE11 */
-                video_element.msRequestFullscreen();
-              }
+          console.log('類別: ', type, ', 時間: ', new Date().getTime());
+          video_element.addEventListener('click', async function() {
+            console.log(video_element);
+            if (video_element.requestFullscreen) {
+              video_element.requestFullscreen();
+            } else if (video_element.webkitRequestFullscreen) { /* Safari */
+              video_element.webkitRequestFullscreen();
+            } else if (video_element.msRequestFullscreen) { /* IE11 */
+              video_element.msRequestFullscreen();
+            }
           });
         }
         // desc 指的是 Offer 與 Answer
         // currentRemoteDescription 代表的是最近一次連線成功的相關訊息
         try {
           if (type == 'share_screen' && video_message.share_screen_video && !peerConnectionInstance.currentRemoteDescription) {
+              console.log('===== 3-1 share screen set remote description =====');
+              console.log('時間: ', new Date().getTime());
               await peerConnectionInstance.setRemoteDescription(new RTCSessionDescription(video_message.share_screen_video));
           } else if(type == 'video_call' && video_message.video_call_video && !peerConnectionInstance.currentRemoteDescription) {
+              console.log('===== 3-2 video call set remote description =====');
+              console.log('時間: ', new Date().getTime());
               await peerConnectionInstance.setRemoteDescription(new RTCSessionDescription(video_message.video_call_video));
           }
+          console.log('===== 5 create answer =====');
+          
           // 呼叫 peerConnect 內的 createOffer / createAnswer
           var peerOfferSdpDescription = await peerConnectionInstance[`createAnswer`](signalOption);
           // 設定本地流配置
+          console.log('===== 6 set local description =====');
+          console.log('類別: ', type, ', 時間: ', new Date().getTime());
           await peerConnectionInstance.setLocalDescription(peerOfferSdpDescription);
 
           if (video_message.candidate) {
+            console.log('===== 9 add ice candidate =====');
+            console.log('類別: ', type, ', 時間: ', new Date().getTime());
             // 新增對方 IP 候選位置
             peerConnectionInstance.addIceCandidate(new RTCIceCandidate(video_message.candidate));
           }

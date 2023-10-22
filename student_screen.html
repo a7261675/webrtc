@@ -27,7 +27,7 @@
     let share_screen_RTC_peer_connection_instance;
     let video_call_RTC_peer_connection_instance;
     // 連線到 Server Port
-    const socket = io('http://localhost:3000');
+    const socket = io('http://localhost:7000');
     const configuration = {
       iceServers: [{
         urls: 'stun:stun.l.google.com:19302' // Google's public STUN server
@@ -40,18 +40,31 @@
 
     // Client
     socket.on('teacher_to_student', async (video_message) => {
+      console.log('===== 7 取得老師端回應 =====');
+      console.log('時間: ', new Date().getTime());
       if (video_message.share_screen_video && !share_screen_RTC_peer_connection_instance.currentRemoteDescription) {
+        console.log('===== 7-1 share screen set remote description =====');
+        console.log('時間: ', new Date().getTime());
         await share_screen_RTC_peer_connection_instance.setRemoteDescription(new RTCSessionDescription(video_message.share_screen_video));
       }
 
       if (video_message.video_call_video && !video_call_RTC_peer_connection_instance.currentRemoteDescription) {
+        console.log('===== 7-2 video call set remote description =====');
+        console.log('時間: ', new Date().getTime());
         await video_call_RTC_peer_connection_instance.setRemoteDescription(new RTCSessionDescription(video_message.video_call_video));
       }
       
       if (video_message.candidate) {
+        console.log('===== 9 add ice candidate =====');
+        console.log('類別: ', video_message.type, ', 時間: ', new Date().getTime());
         // 新增對方 IP 候選位置
-        await share_screen_RTC_peer_connection_instance.addIceCandidate(new RTCIceCandidate(video_message.candidate));
-        await video_call_RTC_peer_connection_instance.addIceCandidate(new RTCIceCandidate(video_message.candidate));
+        if(video_message.type == 'share_screen') {
+          await share_screen_RTC_peer_connection_instance.addIceCandidate(new RTCIceCandidate(video_message.candidate));
+        }
+
+        if(video_message.type == 'video_call') {
+          await video_call_RTC_peer_connection_instance.addIceCandidate(new RTCIceCandidate(video_message.candidate));
+        }
       }
     });
 
@@ -60,11 +73,16 @@
         console.log('視訊或螢幕分享尚未開啟');
         return;
       }
-
+      console.log('===== 1 create connection =====');
+      console.log('create connection time: ' + new Date().getTime());
       var peerConnectionInstance = new RTCPeerConnection(configuration);
       if(type == 'share_screen') {
+        console.log('===== 2-1 share screen add stream =====');
+        console.log('share screen add stream time: ' + new Date().getTime());
         peerConnectionInstance.addStream(shareScreenVideo.srcObject);
       } else if(type == 'video_call') {
+        console.log('===== 2-2 video call add stream =====');
+        console.log('video call add stream time: ' + new Date().getTime());
         peerConnectionInstance.addStream(videoCallVideo.srcObject);
       } else {
         console.log('error video type!!!!');
@@ -72,20 +90,30 @@
       
       // 找尋到 ICE 候選位置後，送去 Server 與另一位配對
       peerConnectionInstance.onicecandidate = ({ candidate }) => {
+        console.log('===== 6 on ice candidate =====');
+        console.log('類別: ', type, ', 時間: ', new Date().getTime());
+        console.log('candidate: ', candidate);
         if (!candidate) { return; }
         socket.emit("student_to_teacher", {
           candidate: candidate
         });
       };
       peerConnectionInstance.oniceconnectionstatechange = (evt) => {
-        console.log('類別: ', type, ', ICE 伺服器狀態變更 => ', evt.target.iceConnectionState);
+        console.log('===== 8 on ice connection state change =====');
+        console.log('類別: ', type, ', 時間: ', new Date().getTime());
+        console.log('ICE 伺服器狀態變更 => ', evt.target.iceConnectionState);
       };
       peerConnectionInstance.onaddstream = (event) => {
-        console.log('類別: ', type, ', 接收流並顯示於遠端視訊！', event);
+        console.log('===== 10 on add stream =====');
+        console.log('類別: ', type, ', 時間: ', new Date().getTime());
+        console.log('接收流並顯示於遠端視訊！', event);
       }
-      
+      console.log('===== 3 create offer description =====');
+      console.log('類別: ', type, ', 時間: ', new Date().getTime());
       // 呼叫 peerConnect 內的 createOffer / createAnswer
       peerOfferSdpDescription = await peerConnectionInstance[`createOffer`](signalOption);
+      console.log('===== 4 set local description =====');
+      console.log('類別: ', type, ', 時間: ', new Date().getTime());
       // 設定本地流配置
       await peerConnectionInstance.setLocalDescription(peerOfferSdpDescription);
 
@@ -102,11 +130,15 @@
 
     $("#send_stream_request_btn").click(async function() {
       try {
+        var tmp1 = await createPeerConnectionInstance('share_screen');
+        var tmp2 = await createPeerConnectionInstance('video_call');
+        console.log('===== 5 send local description to server =====');
+        console.log('時間: ' + new Date().getTime());
         socket.emit("student_to_teacher", {
           student_id: $('input[name=student_id_input]').val(), 
           student_name: $('input[name=student_name_input]').val(), 
-          share_screen_video: await createPeerConnectionInstance('share_screen'),
-          video_call_video: await createPeerConnectionInstance('video_call'),
+          share_screen_video: tmp1,
+          video_call_video: tmp2,
         });
       } catch(err) {
         console.log(err);
