@@ -23,12 +23,6 @@
       }]
     };
 
-    // const configuration2 = {
-    //   iceServers: [{
-    //     urls: 'stun:stun.ideasip.com'
-    //   }]
-    // };
-
     let share_screen_RTC_peer_connection_instance_list;
     let video_call_RTC_peer_connection_instance_list;
 
@@ -39,13 +33,17 @@
           createStudentVideoDiv(video_message.student_id);
         }
         $(`${video_message.student_id}_label`).text(video_message.student_id + ': ' + video_message.student_name);
-        var tmp1 = await createPeerConnectionInstance('share_screen');
-        var tmp2 = await createPeerConnectionInstance('video_call');
+        var share_screen_video = await createPeerConnectionInstance(video_message, 'share_screen');
+        var video_call_video = await createPeerConnectionInstance(video_message, 'video_call');
+        console.log('===== share screen instance =====');
+        console.log(share_screen_video);
+        console.log('===== video call instance =====');
+        console.log(video_call_video);
         socket.emit("teacher_to_student", {
           student_id: video_message.student_id, 
           student_name: video_message.student_name, 
-          share_screen_video: tmp1,
-          video_call_video: tmp2,
+          share_screen_video: share_screen_video.localDescription,
+          video_call_video: video_call_video.localDescription,
         });
       }
     });
@@ -131,7 +129,7 @@
             peerConnectionInstance.addIceCandidate(new RTCIceCandidate(video_message.candidate));
           }
 
-          return peerConnectionInstance.localDescription;
+          return peerConnectionInstance;
         } catch(err) {
           console.log(err);
         }
