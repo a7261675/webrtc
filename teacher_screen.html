@@ -22,10 +22,6 @@
         urls: 'stun:stun.l.google.com:19302' // Google's public STUN server
       }]
     };
-
-    let share_screen_RTC_peer_connection_instance_list;
-    let video_call_RTC_peer_connection_instance_list;
-
     // Client
     socket.on('student_to_teacher', async (video_message) => {
       if(video_message.student_id) {
@@ -33,7 +29,7 @@
           createStudentVideoDiv(video_message.student_id);
         }
         $(`${video_message.student_id}_label`).text(video_message.student_id + ': ' + video_message.student_name);
-        
+
         var share_screen_video = await createPeerConnectionInstance(video_message, 'share_screen');
         var video_call_video = await createPeerConnectionInstance(video_message, 'video_call');
         socket.emit("teacher_to_student", {
@@ -49,7 +45,6 @@
         localstream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
         var peerConnectionInstance = new RTCPeerConnection(configuration);
         peerConnectionInstance.addStream(localstream.clone())
-        // console.log(share_screen_RTC_peer_connection_instance_list);
         peerConnectionInstance.onicecandidate = ({ candidate }) => {
           if (!candidate) { return; }
           socket.emit("teacher_to_student", {
