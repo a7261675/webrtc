@@ -33,12 +33,9 @@
           createStudentVideoDiv(video_message.student_id);
         }
         $(`${video_message.student_id}_label`).text(video_message.student_id + ': ' + video_message.student_name);
+        
         var share_screen_video = await createPeerConnectionInstance(video_message, 'share_screen');
         var video_call_video = await createPeerConnectionInstance(video_message, 'video_call');
-        console.log('===== share screen instance =====');
-        console.log(share_screen_video);
-        console.log('===== video call instance =====');
-        console.log(video_call_video);
         socket.emit("teacher_to_student", {
           student_id: video_message.student_id, 
           student_name: video_message.student_name, 
@@ -50,16 +47,10 @@
 
     async function createPeerConnectionInstance(video_message, type) {
         localstream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
-        console.log('===== 1 create connection =====');
-        console.log('類別: ', type, ', 時間: ', new Date().getTime());
         var peerConnectionInstance = new RTCPeerConnection(configuration);
-        console.log('===== 2 add stream =====');
-        console.log('類別: ', type, ', 時間: ', new Date().getTime());
         peerConnectionInstance.addStream(localstream.clone())
         // console.log(share_screen_RTC_peer_connection_instance_list);
         peerConnectionInstance.onicecandidate = ({ candidate }) => {
-          console.log('===== 7 on ice candidate =====');
-          console.log('類別: ', type, ', 時間: ', new Date().getTime());
           if (!candidate) { return; }
           socket.emit("teacher_to_student", {
             type: type,
@@ -84,14 +75,12 @@
           console.log('error video type!!!!');
         }
         peerConnectionInstance.onaddstream = (event) => {
-          console.log('===== 4 on add stream =====');  
           if(!video_element.srcObject && event.stream){
             console.log('新增串流成功');
             video_element.srcObject = event.stream;
           }
-          console.log('類別: ', type, ', 時間: ', new Date().getTime());
+
           video_element.addEventListener('click', async function() {
-            console.log(video_element);
             if (video_element.requestFullscreen) {
               video_element.requestFullscreen();
             } else if (video_element.webkitRequestFullscreen) { /* Safari */
@@ -105,26 +94,16 @@
         // currentRemoteDescription 代表的是最近一次連線成功的相關訊息
         try {
           if (type == 'share_screen' && video_message.share_screen_video && !peerConnectionInstance.currentRemoteDescription) {
-              console.log('===== 3-1 share screen set remote description =====');
-              console.log('時間: ', new Date().getTime());
               await peerConnectionInstance.setRemoteDescription(new RTCSessionDescription(video_message.share_screen_video));
           } else if(type == 'video_call' && video_message.video_call_video && !peerConnectionInstance.currentRemoteDescription) {
-              console.log('===== 3-2 video call set remote description =====');
-              console.log('時間: ', new Date().getTime());
               await peerConnectionInstance.setRemoteDescription(new RTCSessionDescription(video_message.video_call_video));
           }
-          console.log('===== 5 create answer =====');
-          
           // 呼叫 peerConnect 內的 createOffer / createAnswer
           var peerOfferSdpDescription = await peerConnectionInstance[`createAnswer`](signalOption);
           // 設定本地流配置
-          console.log('===== 6 set local description =====');
-          console.log('類別: ', type, ', 時間: ', new Date().getTime());
           await peerConnectionInstance.setLocalDescription(peerOfferSdpDescription);
 
           if (video_message.candidate) {
-            console.log('===== 9 add ice candidate =====');
-            console.log('類別: ', type, ', 時間: ', new Date().getTime());
             // 新增對方 IP 候選位置
             peerConnectionInstance.addIceCandidate(new RTCIceCandidate(video_message.candidate));
           }
