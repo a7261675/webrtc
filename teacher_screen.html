@@ -28,8 +28,9 @@
         if($("#" + video_message.student_id).length <= 0) {
           createStudentVideoDiv(video_message.student_id);
         }
-        $(`${video_message.student_id}_label`).text(video_message.student_id + ': ' + video_message.student_name);
 
+        $(`#${video_message.student_id}_label`).text(video_message.student_id + ': ' + video_message.student_name);
+        
         var share_screen_video = await createPeerConnectionInstance(video_message, 'share_screen');
         var video_call_video = await createPeerConnectionInstance(video_message, 'video_call');
         socket.emit("teacher_to_student", {
@@ -43,6 +44,16 @@
 
     async function createPeerConnectionInstance(video_message, type) {
         localstream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
+        let video_element;
+        var mediaRecorder;
+        if(type == 'share_screen') {
+          video_element = document.querySelector(`[id='${video_message.student_id}_share_screen_video']`);
+        } else if(type == 'video_call') {
+          video_element = document.querySelector(`[id='${video_message.student_id}_video_call_video']`);
+        } else {
+          console.log('error video type!!!!');
+        }
+
         var peerConnectionInstance = new RTCPeerConnection(configuration);
         peerConnectionInstance.addStream(localstream.clone())
         peerConnectionInstance.onicecandidate = ({ candidate }) => {
@@ -58,21 +69,43 @@
           console.log('ICE 伺服器狀態變更 => ', evt.target.iceConnectionState);
           if (evt.target.iceConnectionState == 'connected') {
             console.log('學生: ', video_message.student_id, ', 類別: ', type, ', ICE 伺服器成功連線');
+            console.log(video_element.srcObject);
+            
+            const chunks = [];
+            mediaRecorder.ondataavailable = e => chunks.push(e.data);
+            mediaRecorder.onstop = e => {
+              const blob = new Blob(chunks, { type: chunks[0].type });
+              console.log(blob);
+              // video_element.srcObject.getVideoTracks()[0].stop();
+
+              filename = video_message.student_id + '_' + type + '.mp4';
+              if(window.navigator.msSaveOrOpenBlob) {
+                  window.navigator.msSaveBlob(blob, filename);
+              } else {
+                  var download_button = window.document.createElement('a');
+                  download_button.href = window.URL.createObjectURL(blob);
+                  download_button.download = filename;
+                  if(type == 'share_screen') {
+                    download_button.innerHTML = "桌面分享下載";
+                  } else if(type == 'video_call') {
+                    download_button.innerHTML = "視訊下載";
+                  }
+                  document.body.appendChild(download_button);
+                  // elem.click();     
+                  // document.body.removeChild(elem);
+              }
+            };
+            mediaRecorder.start();
+          } else if(evt.target.iceConnectionState == 'disconnected') {
+            mediaRecorder.stop();
           }
         };
-        
-        let video_element;
-        if(type == 'share_screen') {
-          video_element = document.querySelector(`[id='${video_message.student_id}_share_screen_video']`);
-        } else if(type == 'video_call') {
-          video_element = document.querySelector(`[id='${video_message.student_id}_video_call_video']`);
-        } else {
-          console.log('error video type!!!!');
-        }
+
         peerConnectionInstance.onaddstream = (event) => {
           if(!video_element.srcObject && event.stream){
             console.log('新增串流成功');
             video_element.srcObject = event.stream;
+            mediaRecorder = new MediaRecorder(video_element.srcObject);
           }
 
           video_element.addEventListener('click', async function() {
@@ -110,13 +143,13 @@
     }
 
     function createStudentVideoDiv(student_id) {
-      $("#student_video_list").append(
-        "<div id=\"" + student_id + "\">" +
-        "<label id = \"" + student_id + "_label\"></label>" + 
-        "<video width=\"500\" height=\"500\" autoplay id=\"" + student_id + "_share_screen_video\" playsinline></video>" + 
-        "<video width=\"500\" height=\"500\" autoplay id=\"" + student_id + "_video_call_video\" playsinline></video>" + 
-        "</div>"
-      );
+      $("#student_video_list").append(`
+        <div id="${student_id}">
+          <label id="${student_id}_label"></label>
+          <video width="25%" height="25%" autoplay id="${student_id}_share_screen_video" playsinline></video>
+          <video width="25%" height="25%" autoplay id="${student_id}_video_call_video" playsinline></video> 
+        </div>
+      `);
     }
     
     $("#student_list_btn").click(function() {
