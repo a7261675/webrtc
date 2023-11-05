@@ -8,18 +8,27 @@
         <label id="student_name_label">學生姓名</label>
         <input type="text" name="student_name_input" id="student_name_input" placeholder="請輸入學生姓名">
         <button id="add_student_list_btn">新增學生資料</button>
+        <p id="error_message"></p>
       </div>
       <div id="student_list">
-        <div id="student_list_head">
-            <p>學號               姓名</p>
-        </div>
-        <div id="student_list_body">
-        </div>
+        <table id="student_list_table">
+            <tr>
+              <th>學號</th>
+              <th>姓名</th>
+              <th>刪除學生</th>
+            </tr>
+          </table>
       </div>
     </body>
     <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
     <script>
         $("#add_student_list_btn").click(function() {
+            if($("#student_id_input").val() == 0) {
+                $("#error_message").text("請輸入學號");
+            } else if($("#student_name_input").val() == 0) {
+                $("#error_message").text("請輸入學生姓名");
+            }
+
             var student = {};
             student.id = $('input[name=student_id_input]').val();
             student.name = $('input[name=student_name_input]').val();
@@ -33,15 +42,18 @@
             })
             .done(function(data){
                 if(data.result == 1) {
-                    $("#student_list_body").prepend(
-                        "<p>"+ student.id + " " + student.name+"</p>" + 
-                        "<button onclick=\"delete_student_data(" + data.id + ")\">X</button>"
-                    );
+                    $("#student_list_table").append(`
+                        <tr id="student_data_${student.id}">
+                            <td>${student.id}</td>
+                            <td>${student.name}</td>
+                            <td><button onclick="delete_student_data(${student.id})">X</button></td>
+                        </tr>
+                    `);
                 }
             })
             .fail(function(data){
                 console.log(data);
-                console.log("post failed!!!!!");
+                console.log("add student data failed!!!!!");
             });
         });
 
@@ -53,8 +65,7 @@
             })
             .done(function(data){
                 if(data.result == 1) {
-                    $("#student_list_body").empty();
-                    get_student_list();
+                    $("#student_data_"+i).empty();
                 }
                 console.log("delete student data success");
             })
@@ -73,10 +84,13 @@
             .done(function(data){
                 student_data_list = data.student_data_list;
                 student_data_list.forEach(function(student_data, index, student_data_list) {
-                    $("#student_list_body").prepend(
-                        "<p>"+student_data.student_id + " " + student_data.student_name+"</p>" + 
-                        "<button onclick=\"delete_student_data(" + student_data.id + ")\">X</button>"
-                    );
+                    $("#student_list_table").append(`
+                        <tr id="student_data_${student_data.id}">
+                            <td>${student_data.id}</td>
+                            <td>${student_data.name}</td>
+                            <td><button onclick="delete_student_data(${student_data.id})">X</button></td>
+                        </tr>
+                    `);
                 });
                 console.log(student_data_list);
                 console.log("get student data success");

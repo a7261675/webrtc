@@ -1,0 +1,163 @@
+<html>
+  <head>
+  </head>
+  <body>
+    <div>
+      <button id="student_list_btn">查看學生名單</button>
+    </div>
+    <div>
+      <label id="name_label">考場名稱</label>
+      <input type="text" name="name_input" id="name_input" placeholder="請輸入考場名稱">
+      <label id="teacher_label">教師名稱</label>
+      <input type="text" name="teacher_input" id="teacher_input" placeholder="請輸入教師名稱">
+      <label id="subject_label">科目名稱</label>
+      <input type="text" name="subject_input" id="subject_input" placeholder="請輸入科目名稱">
+      <label id="test_time_label">考試時間</label>
+      <input type="datetime-local" name="test_time_input" id="test_time_input" placeholder="請輸入考試時間">
+      <label id="select_student_list_label">考試學生列表</label>
+      <select name="select_student_list" id="select_student_list" size="1" multiple="multiple">
+      </select>
+      <button id="add_test_room_btn">新增考場</button>
+      <p id="error_message"></p>
+    </div>
+    <div id="test_room_list">
+      <table id="test_room_table">
+        <tr>
+          <th>考場名稱</th>
+          <th>教師名稱</th>
+          <th>科目名稱</th>
+          <th>考試時間</th>
+          <th>刪除考場</th>
+        </tr>
+      </table>
+    </div>
+  </body>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+  <script>
+    $("#student_list_btn").click(function() {
+      window.open('student_list_window', "", "width=700,height=500");
+    });
+
+    $("#add_test_room_btn").click(function() {
+      if($("#name_input").val() == 0) {
+        $("#error_message").text("請輸入考場名稱");
+      } else if($("#teacher_input").val() == 0) {
+        $("#error_message").text("請輸入教師名稱");
+      } else if($("#subject_input").val() == 0) {
+        $("#error_message").text("請輸入科目名稱");
+      } else if($("#test_time_input").val() == 0) {
+        $("#error_message").text("請輸入考試時間");
+      } else {
+        var test_room = {};
+        test_room.name = $('input[name=name_input]').val();
+        test_room.teacher = $('input[name=teacher_input]').val();
+        test_room.subject = $('input[name=subject_input]').val();
+        test_room.test_time = $('input[name=test_time_input]').val();
+        test_room.student_list = JSON.stringify($('#select_student_list').val());
+
+        $.ajax({
+            data: {test_room_data: test_room},
+            url: '/add_test_room', 
+            dataType: 'json',
+            method: 'post',
+            cache: false,
+            timeout: 5000
+        })
+        .done(function(data){
+            if(data.result == 1) {
+              console.log(test_room.test_time);
+              console.log(new Date(test_room.test_time));
+              console.log(new Date(test_room.test_time).toISOString());
+              date = new Date(test_room.test_time).toISOString().split('T')[0];
+              time = new Date(test_room.test_time).toISOString().split('T')[1].split('Z')[0];
+              $("#test_room_table").append(`
+                <tr id="test_room_${data.id}">
+                  <td><a href="teacher_screen/${data.id}" target="_blank">${test_room.name}</a></td>
+                  <td>${test_room.teacher}</td>
+                  <td>${test_room.subject}</td>
+                  <td>${date+ ' ' + time}</td>
+                  <td><button onclick="delete_test_room(${data.id})">X</button></td>
+                </tr>
+              `);
+            }
+        })
+        .fail(function(data){
+            console.log(data);
+            console.log("add test room failed!!!!!");
+        });
+      }
+    });
+
+    function delete_test_room(i) {
+        $.ajax({
+            url: '/delete_test_room/' + i, 
+            type: 'delete',
+            contentType: 'application/json'
+        })
+        .done(function(data){
+            if(data.result == 1) {
+                $("#test_room_"+i).empty();
+            }
+            console.log("delete test room success");
+        })
+        .fail(function(data){
+            console.log(data);
+            console.log("delete test room failed!!!!!");
+        });
+    }
+
+    function get_test_room_list() {
+      $.ajax({
+          url: '/get_test_room_list', 
+          type: 'get',
+          contentType: 'application/json'
+      })
+      .done(function(data){
+          test_room_list = data.test_room_list;
+          test_room_list.forEach(function(each_test_room, index, test_room_list) {
+            date = each_test_room.time.split('T')[0];
+            time = each_test_room.time.split('T')[1].split('Z')[0];
+            $("#test_room_table").append(`
+              <tr id="test_room_${each_test_room.id}">
+                <td><a href="teacher_screen/${each_test_room.id}" target="_blank">${each_test_room.name}</a></td>
+                <td>${each_test_room.teacher}</td>
+                <td>${each_test_room.subject}</td>
+                <td>${date+ ' ' + time}</td>
+                <td><button onclick="delete_test_room(${each_test_room.id})">X</button></td>
+              </tr>
+            `);
+          });
+          console.log(test_room_list);
+          console.log("get test room list success");
+      })
+      .fail(function(data){
+          console.log(data);
+          console.log("get test room list failed!!!!!");
+      });
+    }
+
+    function get_student_list() {
+        $.ajax({
+            url: '/get_student_data', 
+            type: 'get',
+            contentType: 'application/json'
+        })
+        .done(function(data){
+            student_data_list = data.student_data_list;
+            student_data_list.forEach(function(student_data, index, student_data_list) {
+                $("#select_student_list").append(`<option value='${student_data.id}'>${student_data.name}</option>`);
+            });
+            console.log(student_data_list);
+            console.log("get student data success");
+        })
+        .fail(function(data){
+            console.log(data);
+            console.log("get student data failed!!!!!");
+        });
+    }
+
+    get_student_list();
+    get_test_room_list();
+  </script>
+</html>

@@ -16,7 +16,8 @@
         <video width="1000" height="1000" autoplay
           id="video_call_video" muted playsinline></video>
 
-          <button id="send_stream_request_btn">send stream</button>
+          <button id="send_stream_request_btn">開始串流</button>
+          <button id="stop_stream_request_btn">停止串流</button>
     </div>
   </body>
   <script src="/socket.io/socket.io.js"></script>
@@ -109,6 +110,13 @@
       return peerConnectionInstance;
     }
 
+    async function getVideoStream() {
+      shareScreenVideo.srcObject = await navigator.mediaDevices.getDisplayMedia({ audio: false, video: true });
+      videoCallVideo.srcObject = await navigator.mediaDevices.getUserMedia({ audio: false, video: true });
+      // $('#share_screen_video').attr('src', await navigator.mediaDevices.getDisplayMedia({ audio: false, video: true }));
+      // $('#video_call_video').attr('src', await navigator.mediaDevices.getUserMedia({ audio: false, video: true }));
+    }
+
     $("#send_stream_request_btn").click(async function() {
       try {
         var share_screen_video = await createPeerConnectionInstance('share_screen');
@@ -125,43 +133,52 @@
       }
     });
 
-    async function getVideoStream() {
-      shareScreenVideo.srcObject = await navigator.mediaDevices.getDisplayMedia({ audio: false, video: true });
-      videoCallVideo.srcObject = await navigator.mediaDevices.getUserMedia({ audio: false, video: true });
-      // $('#share_screen_video').attr('src', await navigator.mediaDevices.getDisplayMedia({ audio: false, video: true }));
-      // $('#video_call_video').attr('src', await navigator.mediaDevices.getUserMedia({ audio: false, video: true }));
-    }
+    // $("#stop_stream_request_btn").click(async function() {
+    //   try {
+    //     socket.emit("disconnect", {
+    //       student_id: $('input[name=student_id_input]').val(), 
+    //       student_name: $('input[name=student_name_input]').val(), 
+    //       share_screen_video: share_screen_video.localDescription,
+    //       video_call_video: video_call_video.localDescription,
+    //     });
+    //   } catch(err) {
+    //     console.log(err);
+    //   }
+    // });
 
-    $("#authenticate_student_btn").click(function() {
-            $("#authenticate_student_error_message").text("");
-            var student = {};
-            student.id = $('input[name=student_id_input]').val();
-            student.name = $('input[name=student_name_input]').val();
-            $.ajax({
-                data: {student_data: student},
-                url: '/authenticate_student_data', 
-                dataType: 'json',
-                method: 'post',
-                cache: false,
-                timeout: 5000
-            })
-            .done(function(data){
-              if(data.result.length == 0) {
-                $("#authenticate_student_error_message").text("學號或姓名錯誤");
-              } else {
-                student_data_in_database = data.result[0];
-                if(student_data_in_database.student_id == student.id && student_data_in_database.student_name == student.name) {
-                  getVideoStream();
-                  socket.emit('joinRoom' , 'teacher_room');
-                }
-              }
-              console.log("post success");
-            })
-            .fail(function(data){
-                console.log(data);
-                console.log("post failed!!!!!");
-            });
-        });
+    // $("#authenticate_student_btn").click(function() {
+    //         $("#authenticate_student_error_message").text("");
+    //         var student = {};
+    //         student.id = $('input[name=student_id_input]').val();
+    //         student.name = $('input[name=student_name_input]').val();
+    //         $.ajax({
+    //             data: {student_data: student},
+    //             url: '/authenticate_student_data', 
+    //             dataType: 'json',
+    //             method: 'post',
+    //             cache: false,
+    //             timeout: 5000
+    //         })
+    //         .done(function(data){
+    //           if(data.result.length == 0) {
+    //             $("#authenticate_student_error_message").text("學號或姓名錯誤");
+    //           } else {
+    //             student_data_in_database = data.result[0];
+    //             if(student_data_in_database.id == student.id && student_data_in_database.name == student.name) {
+    //               getVideoStream();
+    //               socket.emit('joinRoom' , 'teacher_room');
+    //             }
+    //           }
+    //           console.log("post success");
+    //         })
+    //         .fail(function(data){
+    //             console.log(data);
+    //             console.log("post failed!!!!!");
+    //         });
+    //     });
+
+        getVideoStream();
+        socket.emit('joinRoom' , 'teacher_room');
   </script>
 </html>
 

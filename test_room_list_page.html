@@ -1,0 +1,93 @@
+<html>
+  <head>
+  </head>
+  <body>
+    <div id="test_room_list">
+      <table id="test_room_table">
+        <tr>
+          <th>考場名稱</th>
+          <th>教師名稱</th>
+          <th>科目名稱</th>
+          <th>考試時間</th>
+          <th>進入考場</th>
+        </tr>
+      </table>
+    </div>
+  </body>
+  <style type="text/css">
+    /* *{
+        margin: 0;
+        padding: 0;
+        background-color: #EAEAEA;
+    }
+    div{
+        width: 200px;
+        height: 200px;
+        background-color: #1E90FF;
+    } */
+    #test_room_list{
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        -webkit-transform: translate(-50%, -50%);
+        -moz-transform: translate(-50%, -50%);
+        -ms-transform: translate(-50%, -50%);
+        -o-transform: translate(-50%, -50%);
+        transform: translate(-50%, -50%);
+    }
+  </style>
+  <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+  <script>
+    function getId() {
+      const queryString = window.location.search;
+      const urlParams = new URLSearchParams(queryString);
+      const student_id = urlParams.get('id');
+    }
+
+    function enter_student_screen(test_room_id) {
+      console.log(document.location);
+      // document.location.pathname = '/';
+      console.log(document.location);
+      document.location.href="../student_screen/" + test_room_id;
+    }
+
+    function get_test_room_list() {
+      $.ajax({
+          url: '/get_test_room_list', 
+          type: 'get',
+          contentType: 'application/json'
+      })
+      .done(function(data){
+          test_room_list = data.test_room_list;
+          test_room_list.forEach(function(each_test_room, index, test_room_list) {
+            current_time_millisecond = new Date().valueOf();
+            test_room_time_millisecond = new Date(each_test_room.time).valueOf();
+            if(test_room_time_millisecond - current_time_millisecond <= 300000) {
+              enter_test_room_btn =`<button onclick="enter_student_screen(${each_test_room.id})">進入考場</button>`;
+            } else {
+              enter_test_room_btn = '';
+            }
+            date = each_test_room.time.split('T')[0];
+            time = each_test_room.time.split('T')[1].split('Z')[0];
+            $("#test_room_table").append(`
+              <tr id="test_room_${each_test_room.id}">
+                <td>${each_test_room.name}</td>
+                <td>${each_test_room.teacher}</td>
+                <td>${each_test_room.subject}</td>
+                <td>${date+ ' ' + time}</td>
+                <td>${enter_test_room_btn}</td>
+              </tr>
+            `);
+          });
+          console.log(test_room_list);
+          console.log("get test room list success");
+      })
+      .fail(function(data){
+          console.log(data);
+          console.log("get test room list failed!!!!!");
+      });
+    }
+
+    get_test_room_list();
+  </script>
+</html>

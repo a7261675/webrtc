@@ -19,11 +19,35 @@ var connection = mysql.createConnection({
 }); 
 connection.connect();
 
-app.get('/student_page', function(req, res){
+app.get('/login', function(req, res){
+  res.sendFile(__dirname + '/login.html');
+});
+
+app.get('/test_room_list_page/:student_id', function(req, res){
+  res.redirect('/test_room_list_page/?id=' + req.params.student_id);
+});
+
+app.get('/test_room_list_page', function(req, res){
+  res.sendFile(__dirname + '/test_room_list_page.html');
+});
+
+app.get('/student_screen/:test_room_id', function(req, res){
+  res.redirect('/student_screen/?test_room_id=' + req.params.test_room_id);
+});
+
+app.get('/student_screen', function(req, res){
   res.sendFile(__dirname + '/student_screen.html');
 });
 
 app.get('/teacher_page', function(req, res){
+  res.sendFile(__dirname + '/teacher_page.html');
+});
+
+app.get('/teacher_screen/:test_room_id', function(req, res){
+  res.redirect('/teacher_screen/?id=' + req.params.test_room_id);
+});
+
+app.get('/teacher_screen', function(req, res){
   res.sendFile(__dirname + '/teacher_screen.html');
 });
 
@@ -34,7 +58,7 @@ app.get('/student_list_window', function(req, res){
 app.post('/add_student_data', function(req, res){
   student_id = req.body.student_data.id;
   student_name = req.body.student_data.name;
-  var sql = 'INSERT INTO student_data (student_id, student_name) VALUES ("' + student_id + '", "'+ student_name +'");';
+  var sql = 'INSERT INTO student (id, name) VALUES ("' + student_id + '", "'+ student_name +'");';
   console.log(sql);
   connection.query(sql,function (err, result) {
       if(err){
@@ -47,7 +71,7 @@ app.post('/add_student_data', function(req, res){
 });
 
 app.get('/get_student_data', function(req, res){
-  var sql = 'SELECT * FROM student_data;';
+  var sql = 'SELECT * FROM student;';
   console.log(sql);
   connection.query(sql,function (err, result) {
       if(err){
@@ -59,7 +83,7 @@ app.get('/get_student_data', function(req, res){
 });
 
 app.delete('/delete_student_data/:student_id', function(req, res){
-  var sql = 'DELETE FROM student_data WHERE id = ' + req.params.student_id + ';';
+  var sql = 'DELETE FROM student WHERE id = ' + req.params.student_id + ';';
   console.log(sql);
   connection.query(sql,function (err, result) {
       if(err){
@@ -74,9 +98,8 @@ app.delete('/delete_student_data/:student_id', function(req, res){
 app.post('/authenticate_student_data', function(req, res){
   student_id = req.body.student_data.id;
   student_name = req.body.student_data.name;
-  var sql = 'SELECT * FROM student_data WHERE student_id = "'+ student_id + '" AND student_name = "' + student_name +'";';
+  var sql = 'SELECT * FROM student WHERE id = "'+ student_id + '" AND name = "' + student_name +'";';
   console.log(sql);
-  console.log('sdfdsfdsfdsfdsfdsfsd');
   connection.query(sql,function (err, result) {
       if(err){
         console.log('[AUTHENTICATE STUDENT DATA ERROR] - ',err.message);
@@ -84,6 +107,51 @@ app.post('/authenticate_student_data', function(req, res){
       }
       console.log(result);
       res.json({result: result});
+  });
+});
+
+app.post('/add_test_room', function(req, res){
+  name = req.body.test_room_data.name;
+  teacher = req.body.test_room_data.teacher;
+  subject = req.body.test_room_data.subject;
+  time = req.body.test_room_data.test_time;
+  student_list = req.body.test_room_data.student_list;
+  var sql = `INSERT INTO test_room (name, teacher, subject, time, student_list) VALUES ('${name}','${teacher}','${subject}', '${time}', '${student_list}');`;
+  console.log(sql);
+  connection.query(sql,function (err, result) {
+      if(err){
+        console.log('[INSERT TEST ROOM DATA ERROR] - ',err.message);
+        res.json({message: '[INSERT TEST ROOM DATA ERROR] - '+err.message});
+      }
+      console.log(result);
+      res.json({result: result.affectedRows, id: result.insertId});
+  });
+});
+
+app.get('/get_test_room_list', function(req, res){
+  var sql = 'SELECT * FROM test_room;';
+  console.log(sql);
+  connection.query(sql,function (err, result) {
+      if(err){
+        console.log('[SELECT FROM TEST ROOM DATA ERROR] - ',err.message);
+        res.json({message: '[SELECT FROM TEST ROOM DATA ERROR] - '+err.message});
+      }
+      console.log(result);
+      res.json({test_room_list: result});
+
+  });
+});
+
+app.delete('/delete_test_room/:test_room_id', function(req, res){
+  var sql = 'DELETE FROM test_room WHERE id = ' + req.params.test_room_id + ';';
+  console.log(sql);
+  connection.query(sql,function (err, result) {
+      if(err){
+        console.log('[DELETE FROM TEST ROOM DATA ERROR] - ',err.message);
+        res.json({message: '[DELETE FROM TEST ROOM DATA ERROR] - '+err.message});
+      }
+      console.log(result);
+      res.json({result: result.affectedRows});
   });
 });
 

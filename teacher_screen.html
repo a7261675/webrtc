@@ -2,9 +2,6 @@
   <head>
   </head>
   <body>
-    <div>
-      <button id="student_list_btn">查看學生名單</button>
-    </div>
     <div id="student_video_list">
     </div>
   </body>
@@ -157,10 +154,6 @@
       `);
     }
     
-    $("#student_list_btn").click(function() {
-      window.open('student_list_window', "", "width=700,height=500");
-    });
-
     socket.emit('joinRoom' , 'teacher_room');
   </script>
 </html>
