@@ -2,7 +2,7 @@
   <head>
   </head>
   <body>
-    <div id="student_video_list">
+    <div id="student_video_list" style="display:flex;flex-wrap:wrap;">
     </div>
   </body>
   <script src="/socket.io/socket.io.js"></script>
@@ -247,13 +247,13 @@
 
     function createStudentVideoDiv(student_id) {
       $("#student_video_list").append(`
-        <div id="${student_id}" style="display: inline-block">
-          <div><label id="${student_id}_label"></label></div>
-          <div id="${student_id}_video_list">
-            <video width="25%" height="25%" autoplay id="${student_id}_share_screen_video" playsinline></video>
-            <video width="25%" height="25%" autoplay id="${student_id}_video_call_video" playsinline></video> 
-          </div>
-          <div id="${student_id}_download_button"></div>
+        <div id="${student_id}" width="45%" height="60%" style="display:inline-block">
+            <div><label id="${student_id}_label"></label></div>
+            <div id="${student_id}_video_list">
+              <video width="400px" height="500px" autoplay id="${student_id}_share_screen_video" playsinline></video>
+              <video width="400px" height="500px" autoplay id="${student_id}_video_call_video" playsinline></video> 
+            </div>
+            <div id="${student_id}_download_button"></div>
         </div>
       `);
     }
