@@ -3,14 +3,6 @@
   </head>
   <body>
     <div>
-      <label id="student_id_label">學號</label>
-        <input type="text" name="student_id_input" id="student_id_input" placeholder="請輸入學號">
-        <label id="student_name_label">學生姓名</label>
-        <input type="text" name="student_name_input" id="student_name_input" placeholder="請輸入學生姓名">
-        <button id="authenticate_student_btn">驗證學生身份</button>
-        <p id="authenticate_student_error_message"></p>
-    </div>
-    <div>
         <video width="1000" height="1000" autoplay
           id="share_screen_video" muted playsinline></video>
         <video width="1000" height="1000" autoplay
@@ -25,6 +17,8 @@
   <script>
     const shareScreenVideo = document.querySelector('#share_screen_video');
     const videoCallVideo = document.querySelector('#video_call_video');
+    let localShareScreenVideoStream;
+    let localVideoCallVideoStream;
     let share_screen_RTC_peer_connection_instance;
     let video_call_RTC_peer_connection_instance;
     // 連線到 Server Port
@@ -40,101 +34,120 @@
     };
 
     // Client
-    socket.on('teacher_to_student', async (video_message) => {
+    socket.on('teacher_to_student_share_screen_request', async (video_message) => {
+      console.log('teacher to student share screen');
       if (video_message.share_screen_video && !share_screen_RTC_peer_connection_instance.currentRemoteDescription) {
+        console.log('teacher to student share screen set remote description');
+        console.log(video_message);
         await share_screen_RTC_peer_connection_instance.setRemoteDescription(new RTCSessionDescription(video_message.share_screen_video));
       }
+      
+      if (video_message.candidate) {
+        console.log('teacher to student share screen add candidate');
+        console.log(video_message.candidate);
+        // 新增對方 IP 候選位置
+        share_screen_RTC_peer_connection_instance.addIceCandidate(new RTCIceCandidate(video_message.candidate));
+      }
+    });
 
+    socket.on('teacher_to_student_video_call_request', async (video_message) => {
       if (video_message.video_call_video && !video_call_RTC_peer_connection_instance.currentRemoteDescription) {
         await video_call_RTC_peer_connection_instance.setRemoteDescription(new RTCSessionDescription(video_message.video_call_video));
       }
       
       if (video_message.candidate) {
         // 新增對方 IP 候選位置
-        if(video_message.type == 'share_screen') {
-          await share_screen_RTC_peer_connection_instance.addIceCandidate(new RTCIceCandidate(video_message.candidate));
-        }
-
-        if(video_message.type == 'video_call') {
-          await video_call_RTC_peer_connection_instance.addIceCandidate(new RTCIceCandidate(video_message.candidate));
-        }
+        video_call_RTC_peer_connection_instance.addIceCandidate(new RTCIceCandidate(video_message.candidate));
       }
     });
 
-    async function createPeerConnectionInstance(type) {
-      if (!shareScreenVideo.srcObject || !videoCallVideo.srcObject) {
-        console.log('視訊或螢幕分享尚未開啟');
-        return;
-      }
-      var peerConnectionInstance = new RTCPeerConnection(configuration);
-      if(type == 'share_screen') {
-        peerConnectionInstance.addStream(shareScreenVideo.srcObject);
-      } else if(type == 'video_call') {
-        peerConnectionInstance.addStream(videoCallVideo.srcObject);
-      } else {
-        console.log('error video type!!!!');
-      }
-      
+    async function createShareScreenPeerConnectionInstance() {
+      localShareScreenVideoStream = await navigator.mediaDevices.getDisplayMedia({ audio: false, video: true });
+      shareScreenVideo.srcObject = localShareScreenVideoStream;
+      share_screen_RTC_peer_connection_instance = new RTCPeerConnection(configuration);
+      share_screen_RTC_peer_connection_instance.addStream(shareScreenVideo.srcObject);
       // 找尋到 ICE 候選位置後，送去 Server 與另一位配對
-      peerConnectionInstance.onicecandidate = ({ candidate }) => {
+      share_screen_RTC_peer_connection_instance.onicecandidate = ({ candidate }) => {
         if (!candidate) { return; }
-        socket.emit("student_to_teacher", {
+        socket.emit("student_to_teacher_share_screen_request", {
           candidate: candidate
         });
       };
-      peerConnectionInstance.oniceconnectionstatechange = (evt) => {
-        console.log('===== 8 on ice connection state change =====');
-        console.log('類別: ', type, ', 時間: ', new Date().getTime());
+      share_screen_RTC_peer_connection_instance.oniceconnectionstatechange = (evt) => {
+        console.log('===== 8 share screen on ice connection state change =====');
         console.log('ICE 伺服器狀態變更 => ', evt.target.iceConnectionState);
       };
-      peerConnectionInstance.onaddstream = (event) => {
-        if(type == 'share_screen') {
-          console.log('接收流並顯示於桌面分享！', event);
-        } else if(type == 'video_call') {
-          console.log('接收流並顯示於遠端視訊！', event);
-        }
+      share_screen_RTC_peer_connection_instance.onaddstream = (event) => {
+        console.log('接收流並顯示於桌面分享！', event);
       }
-      // 呼叫 peerConnect 內的 createOffer / createAnswer
-      peerOfferSdpDescription = await peerConnectionInstance[`createOffer`](signalOption);
-      // 設定本地流配置
-      await peerConnectionInstance.setLocalDescription(peerOfferSdpDescription);
-
-      if(type == 'share_screen') {
-        share_screen_RTC_peer_connection_instance = peerConnectionInstance;
-      } else if(type == 'video_call') {
-        video_call_RTC_peer_connection_instance = peerConnectionInstance;
-      } else {
-        console.log('error video type!!!!');
-      }
-
-      return peerConnectionInstance;
     }
 
-    async function getVideoStream() {
-      shareScreenVideo.srcObject = await navigator.mediaDevices.getDisplayMedia({ audio: false, video: true });
-      videoCallVideo.srcObject = await navigator.mediaDevices.getUserMedia({ audio: false, video: true });
-      // $('#share_screen_video').attr('src', await navigator.mediaDevices.getDisplayMedia({ audio: false, video: true }));
-      // $('#video_call_video').attr('src', await navigator.mediaDevices.getUserMedia({ audio: false, video: true }));
+    async function createVideoCallPeerConnectionInstance() {
+      localVideoCallVideoStream = await navigator.mediaDevices.getUserMedia({ audio: false, video: true })
+      videoCallVideo.srcObject = localVideoCallVideoStream;
+      video_call_RTC_peer_connection_instance = new RTCPeerConnection(configuration);
+      video_call_RTC_peer_connection_instance.addStream(videoCallVideo.srcObject);
+      // 找尋到 ICE 候選位置後，送去 Server 與另一位配對
+      video_call_RTC_peer_connection_instance.onicecandidate = ({ candidate }) => {
+        if (!candidate) { return; }
+        socket.emit("student_to_teacher_video_call_request", {
+          candidate: candidate
+        });
+      };
+      video_call_RTC_peer_connection_instance.oniceconnectionstatechange = (evt) => {
+        console.log('===== 8 video call on ice connection state change =====');
+        console.log('ICE 伺服器狀態變更 => ', evt.target.iceConnectionState);
+      };
+      video_call_RTC_peer_connection_instance.onaddstream = (event) => {
+        console.log('接收流並顯示於遠端視訊！', event);
+      }
     }
 
     $("#send_stream_request_btn").click(async function() {
       try {
-        var share_screen_video = await createPeerConnectionInstance('share_screen');
-        var video_call_video = await createPeerConnectionInstance('video_call');
+        if (!share_screen_RTC_peer_connection_instance) {
+          console.log('螢幕分享尚未開啟');
+          return;
+        }
+        // 呼叫 peerConnect 內的 createOffer / createAnswer
+        shareScreenOfferSdpDescription = await share_screen_RTC_peer_connection_instance[`createOffer`](signalOption);
+        // 設定本地流配置
+        await share_screen_RTC_peer_connection_instance.setLocalDescription(shareScreenOfferSdpDescription);
 
-        socket.emit("student_to_teacher", {
-          student_id: $('input[name=student_id_input]').val(), 
-          student_name: $('input[name=student_name_input]').val(), 
-          share_screen_video: share_screen_video.localDescription,
-          video_call_video: video_call_video.localDescription,
+        if (!video_call_RTC_peer_connection_instance) {
+          console.log('視訊裝置尚未開啟');
+          return;
+        }
+        // 呼叫 peerConnect 內的 createOffer / createAnswer
+        videoCallOfferSdpDescription = await video_call_RTC_peer_connection_instance[`createOffer`](signalOption);
+        // 設定本地流配置
+        await video_call_RTC_peer_connection_instance.setLocalDescription(videoCallOfferSdpDescription);
+
+        socket.emit("student_to_teacher_share_screen_request", {
+          student_id: localStorage.getItem('student_id'), 
+          student_name: localStorage.getItem('student_name'), 
+          share_screen_video: share_screen_RTC_peer_connection_instance.localDescription,
+        });
+
+        socket.emit("student_to_teacher_video_call_request", {
+          student_id: localStorage.getItem('student_id'), 
+          student_name: localStorage.getItem('student_name'), 
+          video_call_video: video_call_RTC_peer_connection_instance.localDescription,
         });
       } catch(err) {
         console.log(err);
       }
     });
+
+    function getId() {
+      const queryString = window.location.search;
+      const urlParams = new URLSearchParams(queryString);
+      return urlParams.get('test_room_id');
+    }
     
-    getVideoStream();
-    socket.emit('joinRoom' , 'teacher_room');
+    createShareScreenPeerConnectionInstance();
+    createVideoCallPeerConnectionInstance();
+    socket.emit('joinRoom' , 'teacher_room_' + getId());
   </script>
 </html>
 

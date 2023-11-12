@@ -116,14 +116,12 @@
       .done(function(data){
           test_room_list = data.test_room_list;
           test_room_list.forEach(function(each_test_room, index, test_room_list) {
-            date = each_test_room.time.split('T')[0];
-            time = each_test_room.time.split('T')[1].split('Z')[0];
             $("#test_room_table").append(`
               <tr id="test_room_${each_test_room.id}">
                 <td><a href="teacher_screen/${each_test_room.id}" target="_blank">${each_test_room.name}</a></td>
                 <td>${each_test_room.teacher}</td>
                 <td>${each_test_room.subject}</td>
-                <td>${date+ ' ' + time}</td>
+                <td>${each_test_room.time}</td>
                 <td><button onclick="delete_test_room(${each_test_room.id})">X</button></td>
               </tr>
             `);

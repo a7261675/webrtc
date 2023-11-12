@@ -60,6 +60,8 @@
             } else {
               student_data_in_database = data.result[0];
               if(student_data_in_database.id == student.id && student_data_in_database.name == student.name) {
+                localStorage.setItem('student_id', student.id);
+                localStorage.setItem('student_name', student.name);
                 document.location.href="test_room_list_page/" + student.id;
               }
             }

@@ -176,18 +176,29 @@ io.on('connection', client => {
     if (nowRoom) {
       client.leave(nowRoom);
     }
+    console.log('room: ' + room);
     client.join(room);
     io.to(room).emit('roomBroadcast', '已有新人加入聊天室！');
   });
 
-  client.on('student_to_teacher', video_message => {
+  client.on('student_to_teacher_share_screen_request', video_message => {
     const nowRoom = findNowRoom(client);
-    client.to(nowRoom).emit('student_to_teacher', video_message)
+    client.to(nowRoom).emit('student_to_teacher_share_screen_request', video_message)
   });
 
-  client.on('teacher_to_student', video_message => {
+  client.on('student_to_teacher_video_call_request', video_message => {
     const nowRoom = findNowRoom(client);
-    client.to(nowRoom).emit('teacher_to_student', video_message)
+    client.to(nowRoom).emit('student_to_teacher_video_call_request', video_message)
+  });
+
+  client.on('teacher_to_student_share_screen_request', video_message => {
+    const nowRoom = findNowRoom(client);
+    client.to(nowRoom).emit('teacher_to_student_share_screen_request', video_message)
+  });
+
+  client.on('teacher_to_student_video_call_request', video_message => {
+    const nowRoom = findNowRoom(client);
+    client.to(nowRoom).emit('teacher_to_student_video_call_request', video_message)
   });
 
   client.on('disconnect', () => {
