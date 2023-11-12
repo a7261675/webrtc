@@ -201,6 +201,11 @@ io.on('connection', client => {
     client.to(nowRoom).emit('teacher_to_student_video_call_request', video_message)
   });
 
+  // client.on('student_to_teacher_stop_video_stream', client_information => {
+  //   const nowRoom = findNowRoom(client);
+  //   client.to(nowRoom).emit('student_to_teacher_stop_video_stream', client_information)
+  // });
+
   client.on('disconnect', () => {
     console.log(`socket 用戶離開 ${client.id}`);
   });

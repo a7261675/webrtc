@@ -23,6 +23,20 @@
     let shareScreenRTCPeerConnectionInstanceList = [];
     let videoCallRTCPeerConnectionInstanceList = [];
 
+    // socket.on('student_to_teacher_stop_video_stream', async (client_information) => {
+    //   var share_screen_video_stream = document.querySelector(`[id='${client_information.student_id}_share_screen_video']`).srcObject;
+    //   share_screen_video_stream.getTracks().forEach((track) => {
+    //     track.stop();
+    //   });
+    //   document.querySelector(`[id='${client_information.student_id}_share_screen_video']`).srcObject = null;
+
+    //   var video_call_video_stream = document.querySelector(`[id='${client_information.student_id}_video_call_video']`).srcObject;
+    //   video_call_video_stream.getTracks().forEach((track) => {
+    //     track.stop();
+    //   });
+    //   document.querySelector(`[id='${client_information.student_id}_video_call_video']`).srcObject = null;
+    // });
+
     // Client
     socket.on('student_to_teacher_share_screen_request', async (video_message) => {
       if(video_message.student_id) {

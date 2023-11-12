@@ -7,10 +7,12 @@
           id="share_screen_video" muted playsinline></video>
         <video width="1000" height="1000" autoplay
           id="video_call_video" muted playsinline></video>
-
-          <button id="send_stream_request_btn">開始串流</button>
-          <button id="stop_stream_request_btn">停止串流</button>
     </div>
+    <div>
+        <button id="send_stream_request_btn">開始串流</button>
+        <button id="stop_stream_request_btn">停止串流</button>
+    </div>
+
   </body>
   <script src="/socket.io/socket.io.js"></script>
   <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
@@ -124,20 +126,43 @@
         await video_call_RTC_peer_connection_instance.setLocalDescription(videoCallOfferSdpDescription);
 
         socket.emit("student_to_teacher_share_screen_request", {
-          student_id: localStorage.getItem('student_id'), 
-          student_name: localStorage.getItem('student_name'), 
+          student_id: sessionStorage.getItem('student_id'), 
+          student_name: sessionStorage.getItem('student_name'), 
           share_screen_video: share_screen_RTC_peer_connection_instance.localDescription,
         });
 
         socket.emit("student_to_teacher_video_call_request", {
-          student_id: localStorage.getItem('student_id'), 
-          student_name: localStorage.getItem('student_name'), 
+          student_id: sessionStorage.getItem('student_id'), 
+          student_name: sessionStorage.getItem('student_name'), 
           video_call_video: video_call_RTC_peer_connection_instance.localDescription,
         });
       } catch(err) {
         console.log(err);
       }
     });
+
+    $("#stop_stream_request_btn").click(async function() {
+      // var share_screen_video_stream = document.querySelector(`[id='share_screen_video']`).srcObject;
+      // share_screen_video_stream.getTracks().forEach((track) => {
+      //   track.stop();
+      // });
+      // document.querySelector(`[id='share_screen_video']`).srcObject = null;
+      
+      // var video_call_video_stream = document.querySelector(`[id='video_call_video']`).srcObject;
+      // video_call_video_stream.getTracks().forEach((track) => {
+      //   track.stop();
+      // });
+      // document.querySelector(`[id='video_call_video']`).srcObject = null;
+
+        // socket.emit("student_to_teacher_stop_video_stream", {
+        //   student_id: localStorage.getItem('student_id'),
+        //   student_name: localStorage.getItem('student_name'),
+        //   command: 'stop',
+        // });
+        share_screen_RTC_peer_connection_instance.close();
+        video_call_RTC_peer_connection_instance.close();
+    });
+
 
     function getId() {
       const queryString = window.location.search;
