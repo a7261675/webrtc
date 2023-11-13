@@ -115,9 +115,10 @@ app.post('/add_test_room', function(req, res){
   name = req.body.test_room_data.name;
   teacher = req.body.test_room_data.teacher;
   subject = req.body.test_room_data.subject;
-  time = req.body.test_room_data.test_time;
+  start_time = req.body.test_room_data.test_start_time;
+  end_time = req.body.test_room_data.test_end_time;
   student_list = req.body.test_room_data.student_list;
-  var sql = `INSERT INTO test_room (name, teacher, subject, time, student_list) VALUES ('${name}','${teacher}','${subject}', '${time}', '${student_list}');`;
+  var sql = `INSERT INTO test_room (name, teacher, subject, start_time, end_time, student_list) VALUES ('${name}','${teacher}','${subject}', '${start_time}', '${end_time}', '${student_list}');`;
   console.log(sql);
   connection.query(sql,function (err, result) {
       if(err){

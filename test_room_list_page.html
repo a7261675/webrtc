@@ -8,7 +8,8 @@
           <th>考場名稱</th>
           <th>教師名稱</th>
           <th>科目名稱</th>
-          <th>考試時間</th>
+          <th>開始時間</th>
+          <th>結束時間</th>
           <th>進入考場</th>
         </tr>
       </table>
@@ -62,9 +63,10 @@
           test_room_list.forEach(function(each_test_room, index, test_room_list) {
             student_id = getId();
             current_time_millisecond = new Date().valueOf();
-            test_room_time_millisecond = new Date(each_test_room.time).valueOf();
+            test_room_start_time_millisecond = new Date(each_test_room.start_time).valueOf();
+            test_room_end_time_millisecond = new Date(each_test_room.end_time).valueOf();
             
-            if((test_room_time_millisecond - current_time_millisecond <= 300000) && JSON.parse(each_test_room.student_list).indexOf(student_id) >= 0) {
+            if((test_room_start_time_millisecond - current_time_millisecond <= 300000) && (current_time_millisecond < test_room_end_time_millisecond) && JSON.parse(each_test_room.student_list).indexOf(student_id) >= 0) {
               enter_test_room_btn =`<button onclick="enter_student_screen(${each_test_room.id})">進入考場</button>`;
             } else {
               enter_test_room_btn = '';
@@ -75,7 +77,8 @@
                 <td>${each_test_room.name}</td>
                 <td>${each_test_room.teacher}</td>
                 <td>${each_test_room.subject}</td>
-                <td>${each_test_room.time}</td>
+                <td>${each_test_room.start_time}</td>
+                <td>${each_test_room.end_time}</td>
                 <td>${enter_test_room_btn}</td>
               </tr>
             `);
