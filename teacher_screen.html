@@ -51,7 +51,6 @@
         }
 
         let share_screen_video_element;
-        var mediaRecorder;
         share_screen_video_element = document.querySelector(`[id='${video_message.student_id}_share_screen_video']`);
 
         shareScreenRTCPeerConnectionInstanceList[video_message.student_id] = new RTCPeerConnection(configuration);
@@ -60,7 +59,6 @@
           if(!share_screen_video_element.srcObject && event.stream){
             console.log('接收流並顯示於遠端分享桌面！', event);
             share_screen_video_element.srcObject = event.stream;
-            mediaRecorder = new MediaRecorder(share_screen_video_element.srcObject);
           }
           share_screen_video_element.addEventListener('click', async function() {
               if (share_screen_video_element.requestFullscreen) {
@@ -78,31 +76,6 @@
             console.log('ICE 伺服器狀態變更 => ', evt.target.iceConnectionState);
             if (evt.target.iceConnectionState == 'connected') {
               console.log('學生: ', video_message.student_id, ', 分享桌面: ICE 伺服器成功連線');
-              console.log(share_screen_video_element.srcObject);
-                
-              const chunks = [];
-              mediaRecorder.ondataavailable = e => chunks.push(e.data);
-              mediaRecorder.onstop = e => {
-                const blob = new Blob(chunks, { type: chunks[0].type });
-                console.log(blob);
-                // share_screen_video_element.srcObject.getVideoTracks()[0].stop();
-                filename = video_message.student_id + '_分享桌面.mp4';
-                if(window.navigator.msSaveOrOpenBlob) {
-                    window.navigator.msSaveBlob(blob, filename);
-                } else {
-                    var download_button = window.document.createElement('a');
-                    download_button.href = window.URL.createObjectURL(blob);
-                    download_button.download = filename;
-                    download_button.innerHTML = "桌面分享下載";
-                    $(`#${video_message.student_id}_download_button`).append(download_button);
-                    // document.body.appendChild(download_button);
-                    // elem.click();     
-                    // document.body.removeChild(elem);
-                }
-              };
-              mediaRecorder.start();
-            } else if(evt.target.iceConnectionState == 'disconnected') {
-              mediaRecorder.stop();
             }
         };
 
@@ -155,7 +128,6 @@
         }
 
         let video_call_video_element;
-        var mediaRecorder;
         video_call_video_element = document.querySelector(`[id='${video_message.student_id}_video_call_video']`);
 
         videoCallRTCPeerConnectionInstanceList[video_message.student_id] = new RTCPeerConnection(configuration);
@@ -165,7 +137,6 @@
           if(!video_call_video_element.srcObject && event.stream){
             console.log('接收流並顯示於遠端視訊！', event);
             video_call_video_element.srcObject = event.stream;
-            mediaRecorder = new MediaRecorder(video_call_video_element.srcObject);
           }
           video_call_video_element.addEventListener('click', async function() {
               if (video_call_video_element.requestFullscreen) {
@@ -181,33 +152,8 @@
         videoCallRTCPeerConnectionInstanceList[video_message.student_id].oniceconnectionstatechange = (evt) => {
           console.log('====== 9 video call on ice connection state change ======');
           console.log('ICE 伺服器狀態變更 => ', evt.target.iceConnectionState);
-          if (evt.target.iceConnectionState == 'connected') {
+          if(evt.target.iceConnectionState == 'connected') {
             console.log('學生: ', video_message.student_id, ', 分享視訊: ICE 伺服器成功連線');
-              console.log(video_call_video_element.srcObject);
-                
-              const chunks = [];
-              mediaRecorder.ondataavailable = e => chunks.push(e.data);
-              mediaRecorder.onstop = e => {
-                const blob = new Blob(chunks, { type: chunks[0].type });
-                console.log(blob);
-                // video_call_video_element.srcObject.getVideoTracks()[0].stop();
-                filename = video_message.student_id + '_分享視訊.mp4';
-                if(window.navigator.msSaveOrOpenBlob) {
-                    window.navigator.msSaveBlob(blob, filename);
-                } else {
-                    var download_button = window.document.createElement('a');
-                    download_button.href = window.URL.createObjectURL(blob);
-                    download_button.download = filename;
-                    download_button.innerHTML = "視訊分享下載";
-                    $(`#${video_message.student_id}_download_button`).append(download_button);
-                    // document.body.appendChild(download_button);
-                    // elem.click();     
-                    // document.body.removeChild(elem);
-                }
-              };
-              mediaRecorder.start();
-          } else if(evt.target.iceConnectionState == 'disconnected') {
-            mediaRecorder.stop();
           }
         };
 
@@ -253,7 +199,6 @@
               <video width="400px" height="500px" autoplay id="${student_id}_share_screen_video" playsinline></video>
               <video width="400px" height="500px" autoplay id="${student_id}_video_call_video" playsinline></video> 
             </div>
-            <div id="${student_id}_download_button"></div>
         </div>
       `);
     }

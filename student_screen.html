@@ -11,6 +11,7 @@
     <div>
         <button id="send_stream_request_btn">開始串流</button>
         <button id="stop_stream_request_btn">停止串流</button>
+        <div id="download_button"></div>
     </div>
 
   </body>
@@ -64,6 +65,7 @@
     });
 
     async function createShareScreenPeerConnectionInstance() {
+      var mediaRecorder;
       localShareScreenVideoStream = await navigator.mediaDevices.getDisplayMedia({ audio: false, video: true });
       shareScreenVideo.srcObject = localShareScreenVideoStream;
       share_screen_RTC_peer_connection_instance = new RTCPeerConnection(configuration);
@@ -78,13 +80,47 @@
       share_screen_RTC_peer_connection_instance.oniceconnectionstatechange = (evt) => {
         console.log('===== 8 share screen on ice connection state change =====');
         console.log('ICE 伺服器狀態變更 => ', evt.target.iceConnectionState);
+        if(evt.target.iceConnectionState == 'connected') {
+          console.log(', 分享桌面: ICE 伺服器成功連線');
+          console.log(shareScreenVideo.srcObject);
+            
+          const chunks = [];
+          mediaRecorder.ondataavailable = e => chunks.push(e.data);
+          mediaRecorder.onstop = e => {
+            const blob = new Blob(chunks, { type: chunks[0].type });
+            console.log(blob);
+            // share_screen_video_element.srcObject.getVideoTracks()[0].stop();
+            filename = '桌面分享.mp4';
+            if(window.navigator.msSaveOrOpenBlob) {
+                window.navigator.msSaveBlob(blob, filename);
+            } else {
+                var download_button = window.document.createElement('a');
+                download_button.href = window.URL.createObjectURL(blob);
+                download_button.download = filename;
+                download_button.innerHTML = "桌面分享下載";
+                $(`#download_button`).append(download_button);
+                // document.body.appendChild(download_button);
+                // elem.click();     
+                // document.body.removeChild(elem);
+            }
+          };
+          mediaRecorder.start();
+        }
       };
+      
+      var share_screen_channel = share_screen_RTC_peer_connection_instance.createDataChannel("share screen channel");
+      share_screen_channel.onclose = () => {
+        mediaRecorder.stop();
+      };
+
       share_screen_RTC_peer_connection_instance.onaddstream = (event) => {
         console.log('接收流並顯示於桌面分享！', event);
+        mediaRecorder = new MediaRecorder(shareScreenVideo.srcObject);
       }
     }
 
     async function createVideoCallPeerConnectionInstance() {
+      var mediaRecorder;
       localVideoCallVideoStream = await navigator.mediaDevices.getUserMedia({ audio: false, video: true })
       videoCallVideo.srcObject = localVideoCallVideoStream;
       video_call_RTC_peer_connection_instance = new RTCPeerConnection(configuration);
@@ -99,9 +135,41 @@
       video_call_RTC_peer_connection_instance.oniceconnectionstatechange = (evt) => {
         console.log('===== 8 video call on ice connection state change =====');
         console.log('ICE 伺服器狀態變更 => ', evt.target.iceConnectionState);
+        if(evt.target.iceConnectionState == 'connected') {
+          console.log(', 分享桌面: ICE 伺服器成功連線');
+          console.log(videoCallVideo.srcObject);
+            
+          const chunks = [];
+          mediaRecorder.ondataavailable = e => chunks.push(e.data);
+          mediaRecorder.onstop = e => {
+            const blob = new Blob(chunks, { type: chunks[0].type });
+            console.log(blob);
+            // share_screen_video_element.srcObject.getVideoTracks()[0].stop();
+            filename = '視訊分享.mp4';
+            if(window.navigator.msSaveOrOpenBlob) {
+                window.navigator.msSaveBlob(blob, filename);
+            } else {
+                var download_button = window.document.createElement('a');
+                download_button.href = window.URL.createObjectURL(blob);
+                download_button.download = filename;
+                download_button.innerHTML = "視訊分享下載";
+                $(`#download_button`).append(download_button);
+                // document.body.appendChild(download_button);
+                // elem.click();     
+                // document.body.removeChild(elem);
+            }
+          };
+          mediaRecorder.start();
+        }
+      };
+
+      var video_call_channel = video_call_RTC_peer_connection_instance.createDataChannel("video call channel");
+      video_call_channel.onclose = () => {
+        mediaRecorder.stop();
       };
       video_call_RTC_peer_connection_instance.onaddstream = (event) => {
         console.log('接收流並顯示於遠端視訊！', event);
+        mediaRecorder = new MediaRecorder(videoCallVideo.srcObject);
       }
     }
 
