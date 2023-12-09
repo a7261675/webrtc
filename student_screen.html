@@ -59,6 +59,8 @@
     // });
 
     socket.on('teacher_to_student_video_call_request', async (video_message) => {
+      console.log('teacher to student video call request: candidate');
+      console.log(video_message);
       if (video_message.video_call_video && !video_call_RTC_peer_connection_instance.currentRemoteDescription) {
         await video_call_RTC_peer_connection_instance.setRemoteDescription(new RTCSessionDescription(video_message.video_call_video));
       }
@@ -132,6 +134,8 @@
       video_call_RTC_peer_connection_instance.addStream(videoCallVideo.srcObject);
       // 找尋到 ICE 候選位置後，送去 Server 與另一位配對
       video_call_RTC_peer_connection_instance.onicecandidate = ({ candidate }) => {
+        console.log('video call rtc peer connection: on ice candidate');
+        console.log(candidate);
         if (!candidate) { return; }
         socket.emit("student_to_teacher_video_call_request", {
           candidate: candidate
@@ -173,7 +177,7 @@
         mediaRecorder.stop();
       };
       video_call_RTC_peer_connection_instance.onaddstream = (event) => {
-        console.log('接收流並顯示於遠端視訊！', event);
+        console.log('video call on add stream', event);
         mediaRecorder = new MediaRecorder(videoCallVideo.srcObject);
       }
     }

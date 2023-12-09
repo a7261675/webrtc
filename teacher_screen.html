@@ -140,7 +140,7 @@
         videoCallRTCPeerConnectionInstanceList[video_message.student_id].addStream(videoCallLocalstream.clone())
         videoCallRTCPeerConnectionInstanceList[video_message.student_id].onaddstream = (event) => {
           if(!video_call_video_element.srcObject && event.stream){
-            console.log('接收流並顯示於遠端視訊！', event);
+            console.log('video call on add stream', event);
             video_call_video_element.srcObject = event.stream;
           }
           video_call_video_element.addEventListener('click', async function() {
@@ -163,6 +163,8 @@
         };
 
         videoCallRTCPeerConnectionInstanceList[video_message.student_id].onicecandidate = ({ candidate }) => {
+          console.log('video call rtc peer connection: on ice candidate');
+          console.log(candidate);
           if (!candidate) { return; }
           socket.emit("teacher_to_student_video_call_request", { candidate: candidate });
         };
