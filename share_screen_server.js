@@ -34,7 +34,7 @@ app.get('/student_list_window', function(req, res){
 app.post('/add_student_data', function(req, res){
   student_id = req.body.student_data.id;
   student_name = req.body.student_data.name;
-  var sql = 'INSERT INTO student_data (student_id, student_name) VALUES ("' + student_id + '", "'+ student_name +'");';
+  var sql = 'INSERT INTO student (id, name) VALUES ("' + student_id + '", "'+ student_name +'");';
   console.log(sql);
   connection.query(sql,function (err, result) {
       if(err){
@@ -47,7 +47,7 @@ app.post('/add_student_data', function(req, res){
 });
 
 app.get('/get_student_data', function(req, res){
-  var sql = 'SELECT * FROM student_data;';
+  var sql = 'SELECT * FROM student;';
   console.log(sql);
   connection.query(sql,function (err, result) {
       if(err){
@@ -59,7 +59,7 @@ app.get('/get_student_data', function(req, res){
 });
 
 app.delete('/delete_student_data/:student_id', function(req, res){
-  var sql = 'DELETE FROM student_data WHERE id = ' + req.params.student_id + ';';
+  var sql = 'DELETE FROM student WHERE id = ' + req.params.student_id + ';';
   console.log(sql);
   connection.query(sql,function (err, result) {
       if(err){
@@ -74,7 +74,7 @@ app.delete('/delete_student_data/:student_id', function(req, res){
 app.post('/authenticate_student_data', function(req, res){
   student_id = req.body.student_data.id;
   student_name = req.body.student_data.name;
-  var sql = 'SELECT * FROM student_data WHERE student_id = "'+ student_id + '" AND student_name = "' + student_name +'";';
+  var sql = 'SELECT * FROM student WHERE id = "'+ student_id + '" AND name = "' + student_name +'";';
   console.log(sql);
   connection.query(sql,function (err, result) {
       if(err){

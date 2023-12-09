@@ -74,7 +74,7 @@
                 student_data_list = data.student_data_list;
                 student_data_list.forEach(function(student_data, index, student_data_list) {
                     $("#student_list_body").prepend(
-                        "<p>"+student_data.student_id + " " + student_data.student_name+"</p>" + 
+                        "<p>"+student_data.id + " " + student_data.name+"</p>" + 
                         "<button onclick=\"delete_student_data(" + student_data.id + ")\">X</button>"
                     );
                 });
