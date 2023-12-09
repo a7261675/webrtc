@@ -25,7 +25,7 @@
     let share_screen_RTC_peer_connection_instance;
     let video_call_RTC_peer_connection_instance;
     // 連線到 Server Port
-    const socket = io(process.env.domain);
+    const socket = io('http://localhost:3000');
     const configuration = {
       iceServers: [{
         urls: 'stun:stun.l.google.com:19302' // Google's public STUN server
@@ -42,21 +42,21 @@
     };
 
     // Client
-    socket.on('teacher_to_student_share_screen_request', async (video_message) => {
-      console.log('teacher to student share screen');
-      if (video_message.share_screen_video && !share_screen_RTC_peer_connection_instance.currentRemoteDescription) {
-        console.log('teacher to student share screen set remote description');
-        console.log(video_message);
-        await share_screen_RTC_peer_connection_instance.setRemoteDescription(new RTCSessionDescription(video_message.share_screen_video));
-      }
+    // socket.on('teacher_to_student_share_screen_request', async (video_message) => {
+    //   console.log('teacher to student share screen');
+    //   if (video_message.share_screen_video && !share_screen_RTC_peer_connection_instance.currentRemoteDescription) {
+    //     console.log('teacher to student share screen set remote description');
+    //     console.log(video_message);
+    //     await share_screen_RTC_peer_connection_instance.setRemoteDescription(new RTCSessionDescription(video_message.share_screen_video));
+    //   }
       
-      if (video_message.candidate) {
-        console.log('teacher to student share screen add candidate');
-        console.log(video_message.candidate);
-        // 新增對方 IP 候選位置
-        share_screen_RTC_peer_connection_instance.addIceCandidate(new RTCIceCandidate(video_message.candidate));
-      }
-    });
+    //   if (video_message.candidate) {
+    //     console.log('teacher to student share screen add candidate');
+    //     console.log(video_message.candidate);
+    //     // 新增對方 IP 候選位置
+    //     share_screen_RTC_peer_connection_instance.addIceCandidate(new RTCIceCandidate(video_message.candidate));
+    //   }
+    // });
 
     socket.on('teacher_to_student_video_call_request', async (video_message) => {
       if (video_message.video_call_video && !video_call_RTC_peer_connection_instance.currentRemoteDescription) {
@@ -180,14 +180,14 @@
 
     $("#send_stream_request_btn").click(async function() {
       try {
-        if (!share_screen_RTC_peer_connection_instance) {
-          console.log('螢幕分享尚未開啟');
-          return;
-        }
-        // 呼叫 peerConnect 內的 createOffer / createAnswer
-        shareScreenOfferSdpDescription = await share_screen_RTC_peer_connection_instance[`createOffer`](signalOption);
-        // 設定本地流配置
-        await share_screen_RTC_peer_connection_instance.setLocalDescription(shareScreenOfferSdpDescription);
+        // if (!share_screen_RTC_peer_connection_instance) {
+        //   console.log('螢幕分享尚未開啟');
+        //   return;
+        // }
+        // // 呼叫 peerConnect 內的 createOffer / createAnswer
+        // shareScreenOfferSdpDescription = await share_screen_RTC_peer_connection_instance[`createOffer`](signalOption);
+        // // 設定本地流配置
+        // await share_screen_RTC_peer_connection_instance.setLocalDescription(shareScreenOfferSdpDescription);
 
         if (!video_call_RTC_peer_connection_instance) {
           console.log('視訊裝置尚未開啟');
@@ -198,11 +198,11 @@
         // 設定本地流配置
         await video_call_RTC_peer_connection_instance.setLocalDescription(videoCallOfferSdpDescription);
 
-        socket.emit("student_to_teacher_share_screen_request", {
-          student_id: sessionStorage.getItem('student_id'), 
-          student_name: sessionStorage.getItem('student_name'), 
-          share_screen_video: share_screen_RTC_peer_connection_instance.localDescription,
-        });
+        // socket.emit("student_to_teacher_share_screen_request", {
+        //   student_id: sessionStorage.getItem('student_id'), 
+        //   student_name: sessionStorage.getItem('student_name'), 
+        //   share_screen_video: share_screen_RTC_peer_connection_instance.localDescription,
+        // });
 
         socket.emit("student_to_teacher_video_call_request", {
           student_id: sessionStorage.getItem('student_id'), 
@@ -232,7 +232,7 @@
         //   student_name: localStorage.getItem('student_name'),
         //   command: 'stop',
         // });
-        share_screen_RTC_peer_connection_instance.close();
+        // share_screen_RTC_peer_connection_instance.close();
         video_call_RTC_peer_connection_instance.close();
     });
 
@@ -243,7 +243,7 @@
       return urlParams.get('test_room_id');
     }
     
-    createShareScreenPeerConnectionInstance();
+    // createShareScreenPeerConnectionInstance();
     createVideoCallPeerConnectionInstance();
     socket.emit('joinRoom' , 'teacher_room_' + getId());
   </script>
