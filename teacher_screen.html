@@ -63,7 +63,8 @@
         shareScreenRTCPeerConnectionInstanceList[video_message.student_id].addStream(shareScreenLocalstream.clone())
         shareScreenRTCPeerConnectionInstanceList[video_message.student_id].onaddstream = (event) => {
           if(!share_screen_video_element.srcObject && event.stream){
-            console.log('接收流並顯示於遠端分享桌面！', event);
+            console.log('share screen on add stream ' + new Date().getTime());
+            console.log(event);
             share_screen_video_element.srcObject = event.stream;
           }
           share_screen_video_element.addEventListener('click', async function() {
@@ -78,7 +79,7 @@
         }
 
         shareScreenRTCPeerConnectionInstanceList[video_message.student_id].oniceconnectionstatechange = (evt) => {
-            console.log('===== 4 share screen on ice connection state change =====');
+            console.log('===== 4 share screen on ice connection state change ===== ' + new Date().getTime());
             console.log('ICE 伺服器狀態變更 => ', evt.target.iceConnectionState);
             if (evt.target.iceConnectionState == 'connected') {
               console.log('學生: ', video_message.student_id, ', 分享桌面: ICE 伺服器成功連線');
@@ -86,6 +87,8 @@
         };
 
         shareScreenRTCPeerConnectionInstanceList[video_message.student_id].onicecandidate = ({ candidate }) => {
+          console.log('share screen rtc peer connection: on ice candidate ' + new Date().getTime());
+          console.log(candidate);
           if (!candidate) { return; }
           socket.emit("teacher_to_student_share_screen_request", { candidate: candidate });
         };
@@ -136,11 +139,12 @@
         let video_call_video_element;
         video_call_video_element = document.querySelector(`[id='${video_message.student_id}_video_call_video']`);
 
-        videoCallRTCPeerConnectionInstanceList[video_message.student_id] = new RTCPeerConnection(configuration2);
+        videoCallRTCPeerConnectionInstanceList[video_message.student_id] = new RTCPeerConnection(configuration);
         videoCallRTCPeerConnectionInstanceList[video_message.student_id].addStream(videoCallLocalstream.clone())
         videoCallRTCPeerConnectionInstanceList[video_message.student_id].onaddstream = (event) => {
           if(!video_call_video_element.srcObject && event.stream){
-            console.log('video call on add stream', event);
+            console.log('video call on add stream ' + new Date().getTime());
+            console.log(event);
             video_call_video_element.srcObject = event.stream;
           }
           video_call_video_element.addEventListener('click', async function() {
@@ -155,7 +159,7 @@
         }
       
         videoCallRTCPeerConnectionInstanceList[video_message.student_id].oniceconnectionstatechange = (evt) => {
-          console.log('====== 9 video call on ice connection state change ======');
+          console.log('====== 9 video call on ice connection state change ====== ' + new Date().getTime());
           console.log('ICE 伺服器狀態變更 => ', evt.target.iceConnectionState);
           if(evt.target.iceConnectionState == 'connected') {
             console.log('學生: ', video_message.student_id, ', 分享視訊: ICE 伺服器成功連線');
@@ -163,7 +167,7 @@
         };
 
         videoCallRTCPeerConnectionInstanceList[video_message.student_id].onicecandidate = ({ candidate }) => {
-          console.log('video call rtc peer connection: on ice candidate');
+          console.log('video call rtc peer connection: on ice candidate ' + new Date().getTime());
           console.log(candidate);
           if (!candidate) { return; }
           socket.emit("teacher_to_student_video_call_request", { candidate: candidate });

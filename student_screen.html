@@ -43,15 +43,16 @@
 
     // Client
     // socket.on('teacher_to_student_share_screen_request', async (video_message) => {
-    //   console.log('teacher to student share screen');
+    //   console.log('teacher to student share screen request: candidate ' + new Date().getTime());
+    //   console.log(video_message);
     //   if (video_message.share_screen_video && !share_screen_RTC_peer_connection_instance.currentRemoteDescription) {
-    //     console.log('teacher to student share screen set remote description');
+    //     console.log('teacher to student share screen set remote description ' + new Date().getTime());
     //     console.log(video_message);
     //     await share_screen_RTC_peer_connection_instance.setRemoteDescription(new RTCSessionDescription(video_message.share_screen_video));
     //   }
       
     //   if (video_message.candidate) {
-    //     console.log('teacher to student share screen add candidate');
+    //     console.log('teacher to student share screen add candidate ' + new Date().getTime());
     //     console.log(video_message.candidate);
     //     // 新增對方 IP 候選位置
     //     share_screen_RTC_peer_connection_instance.addIceCandidate(new RTCIceCandidate(video_message.candidate));
@@ -59,13 +60,17 @@
     // });
 
     socket.on('teacher_to_student_video_call_request', async (video_message) => {
-      console.log('teacher to student video call request: candidate');
+      console.log('teacher to student video call request: candidate ' + new Date().getTime());
       console.log(video_message);
       if (video_message.video_call_video && !video_call_RTC_peer_connection_instance.currentRemoteDescription) {
+        console.log('teacher to student video call set remote description ' + new Date().getTime());
+        console.log(video_message);
         await video_call_RTC_peer_connection_instance.setRemoteDescription(new RTCSessionDescription(video_message.video_call_video));
       }
       
       if (video_message.candidate) {
+        console.log('teacher to student video call add candidate ' + new Date().getTime());
+        console.log(video_message.candidate);
         // 新增對方 IP 候選位置
         video_call_RTC_peer_connection_instance.addIceCandidate(new RTCIceCandidate(video_message.candidate));
       }
@@ -79,13 +84,15 @@
       share_screen_RTC_peer_connection_instance.addStream(shareScreenVideo.srcObject);
       // 找尋到 ICE 候選位置後，送去 Server 與另一位配對
       share_screen_RTC_peer_connection_instance.onicecandidate = ({ candidate }) => {
+        console.log('share screen rtc peer connection: on ice candidate');
+        console.log(candidate);
         if (!candidate) { return; }
         socket.emit("student_to_teacher_share_screen_request", {
           candidate: candidate
         });
       };
       share_screen_RTC_peer_connection_instance.oniceconnectionstatechange = (evt) => {
-        console.log('===== 8 share screen on ice connection state change =====');
+        console.log('===== 8 share screen on ice connection state change ===== ' + new Date().getTime());
         console.log('ICE 伺服器狀態變更 => ', evt.target.iceConnectionState);
         if(evt.target.iceConnectionState == 'connected') {
           console.log(', 分享桌面: ICE 伺服器成功連線');
@@ -121,7 +128,8 @@
       };
 
       share_screen_RTC_peer_connection_instance.onaddstream = (event) => {
-        console.log('接收流並顯示於桌面分享！', event);
+        console.log('share screen on add stream ' + new Date().getTime());
+        console.log(event);
         mediaRecorder = new MediaRecorder(shareScreenVideo.srcObject);
       }
     }
@@ -130,11 +138,11 @@
       var mediaRecorder;
       localVideoCallVideoStream = await navigator.mediaDevices.getUserMedia({ audio: false, video: true })
       videoCallVideo.srcObject = localVideoCallVideoStream;
-      video_call_RTC_peer_connection_instance = new RTCPeerConnection(configuration2);
+      video_call_RTC_peer_connection_instance = new RTCPeerConnection(configuration);
       video_call_RTC_peer_connection_instance.addStream(videoCallVideo.srcObject);
       // 找尋到 ICE 候選位置後，送去 Server 與另一位配對
       video_call_RTC_peer_connection_instance.onicecandidate = ({ candidate }) => {
-        console.log('video call rtc peer connection: on ice candidate');
+        console.log('video call rtc peer connection: on ice candidate ' + new Date().getTime());
         console.log(candidate);
         if (!candidate) { return; }
         socket.emit("student_to_teacher_video_call_request", {
@@ -142,7 +150,7 @@
         });
       };
       video_call_RTC_peer_connection_instance.oniceconnectionstatechange = (evt) => {
-        console.log('===== 8 video call on ice connection state change =====');
+        console.log('===== 8 video call on ice connection state change ===== ' + new Date().getTime());
         console.log('ICE 伺服器狀態變更 => ', evt.target.iceConnectionState);
         if(evt.target.iceConnectionState == 'connected') {
           console.log(', 分享視訊: ICE 伺服器成功連線');
@@ -177,7 +185,8 @@
         mediaRecorder.stop();
       };
       video_call_RTC_peer_connection_instance.onaddstream = (event) => {
-        console.log('video call on add stream', event);
+        console.log('video call on add stream ' + new Date().getTime());
+        console.log(event);
         mediaRecorder = new MediaRecorder(videoCallVideo.srcObject);
       }
     }
