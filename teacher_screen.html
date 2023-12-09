@@ -3,6 +3,48 @@
   </head>
   <body>
     <div id="student_video_list" style="display:flex;flex-wrap:wrap;">
+      <div id="0" width="45%" height="50%" style="display:inline-block">
+        <div><label id="0_label"></label></div>
+        <div id="0_video_list">
+          <video width="400px" height="500px" autoplay id="0_share_screen_video" playsinline></video>
+          <video width="400px" height="500px" autoplay id="0_video_call_video" playsinline></video> 
+        </div>
+      </div>
+      <div id="1" width="45%" height="50%" style="display:inline-block">
+        <div><label id="1_label"></label></div>
+        <div id="1_video_list">
+          <video width="400px" height="500px" autoplay id="1_share_screen_video" playsinline></video>
+          <video width="400px" height="500px" autoplay id="1_video_call_video" playsinline></video> 
+        </div>
+      </div>
+      <div id="2" width="45%" height="50%" style="display:inline-block">
+        <div><label id="2_label"></label></div>
+        <div id="2_video_list">
+          <video width="400px" height="500px" autoplay id="2_share_screen_video" playsinline></video>
+          <video width="400px" height="500px" autoplay id="2_video_call_video" playsinline></video> 
+        </div>
+      </div>
+      <div id="3" width="45%" height="50%" style="display:inline-block">
+        <div><label id="3_label"></label></div>
+        <div id="3_video_list">
+          <video width="400px" height="500px" autoplay id="3_share_screen_video" playsinline></video>
+          <video width="400px" height="500px" autoplay id="3_video_call_video" playsinline></video> 
+        </div>
+      </div>
+      <div id="4" width="45%" height="50%" style="display:inline-block">
+        <div><label id="4_label"></label></div>
+        <div id="4_video_list">
+          <video width="400px" height="500px" autoplay id="4_share_screen_video" playsinline></video>
+          <video width="400px" height="500px" autoplay id="4_video_call_video" playsinline></video> 
+        </div>
+      </div>
+      <div id="5" width="45%" height="50%" style="display:inline-block">
+        <div><label id="5_label"></label></div>
+        <div id="5_video_list">
+          <video width="400px" height="500px" autoplay id="5_share_screen_video" playsinline></video>
+          <video width="400px" height="500px" autoplay id="5_video_call_video" playsinline></video> 
+        </div>
+      </div>
     </div>
   </body>
   <script src="/socket.io/socket.io.js"></script>
@@ -25,10 +67,39 @@
       }]
     };
     let localstream;
-    let shareScreenLocalstream;
-    let videoCallLocalstream;
-    let shareScreenRTCPeerConnectionInstanceList = [];
-    let videoCallRTCPeerConnectionInstanceList = [];
+    // let shareScreenLocalstream;
+    // let videoCallLocalstream;
+    let shareScreenRTCPeerConnectionInstance_0;
+    let shareScreenRTCPeerConnectionInstance_1;
+    let shareScreenRTCPeerConnectionInstance_2;
+    let shareScreenRTCPeerConnectionInstance_3;
+    let shareScreenRTCPeerConnectionInstance_4;
+    let shareScreenRTCPeerConnectionInstance_5;
+    let videoCallRTCPeerConnectionInstance_0;
+    let videoCallRTCPeerConnectionInstance_1;
+    let videoCallRTCPeerConnectionInstance_2;
+    let videoCallRTCPeerConnectionInstance_3;
+    let videoCallRTCPeerConnectionInstance_4;
+    let videoCallRTCPeerConnectionInstance_5;
+    let shareScreenRTCPeerConnectionInstanceList = [
+      shareScreenRTCPeerConnectionInstance_0,
+      shareScreenRTCPeerConnectionInstance_1,
+      shareScreenRTCPeerConnectionInstance_2,
+      shareScreenRTCPeerConnectionInstance_3,
+      shareScreenRTCPeerConnectionInstance_4,
+      shareScreenRTCPeerConnectionInstance_5
+    ];
+    let videoCallRTCPeerConnectionInstanceList = [
+      videoCallRTCPeerConnectionInstance_0,
+      videoCallRTCPeerConnectionInstance_1,
+      videoCallRTCPeerConnectionInstance_2,
+      videoCallRTCPeerConnectionInstance_3,
+      videoCallRTCPeerConnectionInstance_4,
+      videoCallRTCPeerConnectionInstance_5
+    ];
+    let studentIdToDivIndex = [];
+    let now = 0;
+    let cnt = 0;
 
     // socket.on('student_to_teacher_stop_video_stream', async (client_information) => {
     //   var share_screen_video_stream = document.querySelector(`[id='${client_information.student_id}_share_screen_video']`).srcObject;
@@ -44,9 +115,9 @@
     //   document.querySelector(`[id='${client_information.student_id}_video_call_video']`).srcObject = null;
     // });
 
-    async function initPeerConnection(student_id) {
+    async function initPeerConnection(i) {
       localstream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
-      createStudentVideoDiv(student_id);
+      // createStudentVideoDiv(student_id);
       const configuration = {
         iceServers: [{
           urls: 'stun:stun.l.google.com:19302' // Google's public STUN server
@@ -58,10 +129,10 @@
           urls: 'stun:stun.ideasip.com'
         }]
       };
-      shareScreenRTCPeerConnectionInstanceList[student_id] = new RTCPeerConnection(configuration);
-      shareScreenRTCPeerConnectionInstanceList[student_id].addStream(localstream.clone())
-      shareScreenRTCPeerConnectionInstanceList[student_id].onaddstream = (event) => {
-        var share_screen_video_element = document.querySelector(`[id='${student_id}_share_screen_video']`); 
+      shareScreenRTCPeerConnectionInstanceList[i] = new RTCPeerConnection(configuration);
+      shareScreenRTCPeerConnectionInstanceList[i].addStream(localstream.clone())
+      shareScreenRTCPeerConnectionInstanceList[i].onaddstream = (event) => {
+        var share_screen_video_element = document.querySelector(`[id='${i}_share_screen_video']`); 
         if(!share_screen_video_element.srcObject && event.stream){
           share_screen_video_element.srcObject = event.stream;
           console.log('接收流並顯示於遠端桌面！', event);
@@ -77,29 +148,29 @@
         });
       }
 
-      shareScreenRTCPeerConnectionInstanceList[student_id].oniceconnectionstatechange = (evt) => {
+      shareScreenRTCPeerConnectionInstanceList[i].oniceconnectionstatechange = (evt) => {
+        if (evt.target.iceConnectionState == 'connected') {
+          cnt++;
+          if ((cnt > 0) && (cnt % 2 == 0)) {
+            now++;
+          }
+        }
+        // console.log('===== 4 share screen on ice connection state change ===== ' + new Date().getTime());
+        // console.log('ICE 伺服器狀態變更 => ', evt.target.iceConnectionState);
         // if (evt.target.iceConnectionState == 'connected') {
-        //   cnt++;
-        //   if ((cnt > 0) && (cnt % 2 == 0)) {
-        //     now++;
-        //   }
+        //   console.log('分享桌面: ICE 伺服器成功連線');
         // }
-        console.log('===== 4 share screen on ice connection state change ===== ' + new Date().getTime());
-            console.log('ICE 伺服器狀態變更 => ', evt.target.iceConnectionState);
-            if (evt.target.iceConnectionState == 'connected') {
-              console.log('學生: ', student_id, ', 分享桌面: ICE 伺服器成功連線');
-            }
       };
 
-      shareScreenRTCPeerConnectionInstanceList[student_id].onicecandidate = ({ candidate }) => {
+      shareScreenRTCPeerConnectionInstanceList[i].onicecandidate = ({ candidate }) => {
         if (!candidate) { return; }
         socket.emit("teacher_to_student_share_screen_request", { candidate: candidate });
       };
 
-      videoCallRTCPeerConnectionInstanceList[student_id] = new RTCPeerConnection(configuration2);
-      videoCallRTCPeerConnectionInstanceList[student_id].addStream(localstream.clone())
-      videoCallRTCPeerConnectionInstanceList[student_id].onaddstream = (event) => {
-        var video_call_video_element = document.querySelector(`[id='${student_id}_video_call_video']`); 
+      videoCallRTCPeerConnectionInstanceList[i] = new RTCPeerConnection(configuration2);
+      videoCallRTCPeerConnectionInstanceList[i].addStream(localstream.clone())
+      videoCallRTCPeerConnectionInstanceList[i].onaddstream = (event) => {
+        var video_call_video_element = document.querySelector(`[id='${i}_video_call_video']`); 
         if(!video_call_video_element.srcObject && event.stream){
           video_call_video_element.srcObject = event.stream;
         }
@@ -115,21 +186,21 @@
         });
       }
       
-      videoCallRTCPeerConnectionInstanceList[student_id].oniceconnectionstatechange = (evt) => {
-        // if (evt.target.iceConnectionState == 'connected') {
-        //   cnt++;
-        //   if ((cnt > 0) && (cnt % 2 == 0)) {
-        //     now++;
-        //   }
-        // }
-        console.log('====== 9 video call on ice connection state change ====== ' + new Date().getTime());
-          console.log('ICE 伺服器狀態變更 => ', evt.target.iceConnectionState);
-          if(evt.target.iceConnectionState == 'connected') {
-            console.log('學生: ', video_message.student_id, ', 分享視訊: ICE 伺服器成功連線');
+      videoCallRTCPeerConnectionInstanceList[i].oniceconnectionstatechange = (evt) => {
+        if (evt.target.iceConnectionState == 'connected') {
+          cnt++;
+          if ((cnt > 0) && (cnt % 2 == 0)) {
+            now++;
           }
+        }
+        // console.log('====== 9 video call on ice connection state change ====== ' + new Date().getTime());
+        // console.log('ICE 伺服器狀態變更 => ', evt.target.iceConnectionState);
+        // if(evt.target.iceConnectionState == 'connected') {
+        //   console.log('學生: 分享視訊: ICE 伺服器成功連線');
+        // }
       };
 
-      videoCallRTCPeerConnectionInstanceList[student_id].onicecandidate = ({ candidate }) => {
+      videoCallRTCPeerConnectionInstanceList[i].onicecandidate = ({ candidate }) => {
         if (!candidate) { return; }
         socket.emit("teacher_to_student_video_call_request", { candidate: candidate });
       };
@@ -137,66 +208,66 @@
 
     // Client
     socket.on('student_to_teacher_share_screen_request', async (video_message) => {
-      if(video_message.student_id) {
-        // if($("#" + video_message.student_id).length <= 0) {
-        //   createStudentVideoDiv(video_message.student_id);
-        // }
+      // if(video_message.student_id) {
+      //   // if($("#" + video_message.student_id).length <= 0) {
+      //   //   createStudentVideoDiv(video_message.student_id);
+      //   // }
 
-        // $(`#${video_message.student_id}_label`).text(video_message.student_id + ': ' + video_message.student_name);
+      //   // $(`#${video_message.student_id}_label`).text(video_message.student_id + ': ' + video_message.student_name);
 
-        // let share_screen_video_element;
-        // share_screen_video_element = document.querySelector(`[id='${video_message.student_id}_share_screen_video']`);
+      //   // let share_screen_video_element;
+      //   // share_screen_video_element = document.querySelector(`[id='${video_message.student_id}_share_screen_video']`);
 
-        // shareScreenRTCPeerConnectionInstanceList[video_message.student_id] = new RTCPeerConnection(configuration);
-        // shareScreenRTCPeerConnectionInstanceList[video_message.student_id].addStream(await navigator.mediaDevices.getUserMedia({ audio: true, video: true }).clone())
-        // shareScreenRTCPeerConnectionInstanceList[video_message.student_id].onaddstream = (event) => {
-        //   if(!share_screen_video_element.srcObject && event.stream){
-        //     console.log('share screen on add stream ' + new Date().getTime());
-        //     console.log(event);
-        //     share_screen_video_element.srcObject = event.stream;
-        //   }
-        //   share_screen_video_element.addEventListener('click', async function() {
-        //       if (share_screen_video_element.requestFullscreen) {
-        //         share_screen_video_element.requestFullscreen();
-        //       } else if (share_screen_video_element.webkitRequestFullscreen) { /* Safari */
-        //         share_screen_video_element.webkitRequestFullscreen();
-        //       } else if (share_screen_video_element.msRequestFullscreen) { /* IE11 */
-        //         share_screen_video_element.msRequestFullscreen();
-        //       }
-        //   });
-        // }
+      //   // shareScreenRTCPeerConnectionInstanceList[video_message.student_id] = new RTCPeerConnection(configuration);
+      //   // shareScreenRTCPeerConnectionInstanceList[video_message.student_id].addStream(await navigator.mediaDevices.getUserMedia({ audio: true, video: true }).clone())
+      //   // shareScreenRTCPeerConnectionInstanceList[video_message.student_id].onaddstream = (event) => {
+      //   //   if(!share_screen_video_element.srcObject && event.stream){
+      //   //     console.log('share screen on add stream ' + new Date().getTime());
+      //   //     console.log(event);
+      //   //     share_screen_video_element.srcObject = event.stream;
+      //   //   }
+      //   //   share_screen_video_element.addEventListener('click', async function() {
+      //   //       if (share_screen_video_element.requestFullscreen) {
+      //   //         share_screen_video_element.requestFullscreen();
+      //   //       } else if (share_screen_video_element.webkitRequestFullscreen) { /* Safari */
+      //   //         share_screen_video_element.webkitRequestFullscreen();
+      //   //       } else if (share_screen_video_element.msRequestFullscreen) { /* IE11 */
+      //   //         share_screen_video_element.msRequestFullscreen();
+      //   //       }
+      //   //   });
+      //   // }
 
-        // shareScreenRTCPeerConnectionInstanceList[video_message.student_id].oniceconnectionstatechange = (evt) => {
-        //     console.log('===== 4 share screen on ice connection state change ===== ' + new Date().getTime());
-        //     console.log('ICE 伺服器狀態變更 => ', evt.target.iceConnectionState);
-        //     if (evt.target.iceConnectionState == 'connected') {
-        //       console.log('學生: ', video_message.student_id, ', 分享桌面: ICE 伺服器成功連線');
-        //     }
-        // };
+      //   // shareScreenRTCPeerConnectionInstanceList[video_message.student_id].oniceconnectionstatechange = (evt) => {
+      //   //     console.log('===== 4 share screen on ice connection state change ===== ' + new Date().getTime());
+      //   //     console.log('ICE 伺服器狀態變更 => ', evt.target.iceConnectionState);
+      //   //     if (evt.target.iceConnectionState == 'connected') {
+      //   //       console.log('學生: ', video_message.student_id, ', 分享桌面: ICE 伺服器成功連線');
+      //   //     }
+      //   // };
 
-        // shareScreenRTCPeerConnectionInstanceList[video_message.student_id].onicecandidate = ({ candidate }) => {
-        //   console.log('share screen rtc peer connection: on ice candidate ' + new Date().getTime());
-        //   console.log(candidate);
-        //   if (!candidate) { return; }
-        //   socket.emit("teacher_to_student_share_screen_request", { candidate: candidate });
-        // };
-        // desc 指的是 Offer 與 Answer
-        // currentRemoteDescription 代表的是最近一次連線成功的相關訊息
-      }
+      //   // shareScreenRTCPeerConnectionInstanceList[video_message.student_id].onicecandidate = ({ candidate }) => {
+      //   //   console.log('share screen rtc peer connection: on ice candidate ' + new Date().getTime());
+      //   //   console.log(candidate);
+      //   //   if (!candidate) { return; }
+      //   //   socket.emit("teacher_to_student_share_screen_request", { candidate: candidate });
+      //   // };
+      //   // desc 指的是 Offer 與 Answer
+      //   // currentRemoteDescription 代表的是最近一次連線成功的相關訊息
+      // }
 
-      if (video_message.share_screen_video && !shareScreenRTCPeerConnectionInstanceList[video_message.student_id].currentRemoteDescription) {
-        $(`#${video_message.student_id}_label`).text(video_message.student_id + ': ' + video_message.student_name);
+      if (video_message.share_screen_video && !shareScreenRTCPeerConnectionInstanceList[now].currentRemoteDescription) {
+        $(`#${now}_label`).text(video_message.student_id + ': ' + video_message.student_name);
         try {
-          await shareScreenRTCPeerConnectionInstanceList[video_message.student_id].setRemoteDescription(new RTCSessionDescription(video_message.share_screen_video));
-          if (!shareScreenRTCPeerConnectionInstanceList[video_message.student_id]) {
+          await shareScreenRTCPeerConnectionInstanceList[now].setRemoteDescription(new RTCSessionDescription(video_message.share_screen_video));
+          if (!shareScreenRTCPeerConnectionInstanceList[now]) {
             console.log('尚未開啟螢幕分享');
             return;
           }
           // 呼叫 peerConnect 內的 createOffer / createAnswer
-          shareScreenOfferSdpDescription = await shareScreenRTCPeerConnectionInstanceList[video_message.student_id][`createAnswer`](signalOption);
+          shareScreenOfferSdpDescription = await shareScreenRTCPeerConnectionInstanceList[now][`createAnswer`](signalOption);
           // 設定本地流配置
-          await shareScreenRTCPeerConnectionInstanceList[video_message.student_id].setLocalDescription(shareScreenOfferSdpDescription);
-          shareScreenLocalDescription = shareScreenRTCPeerConnectionInstanceList[video_message.student_id].localDescription;
+          await shareScreenRTCPeerConnectionInstanceList[now].setLocalDescription(shareScreenOfferSdpDescription);
+          shareScreenLocalDescription = shareScreenRTCPeerConnectionInstanceList[now].localDescription;
 
           socket.emit("teacher_to_student_share_screen_request", {
             student_id: video_message.student_id, 
@@ -210,75 +281,75 @@
 
       if (video_message.candidate) {
         // 新增對方 IP 候選位置
-        shareScreenRTCPeerConnectionInstanceList[video_message.student_id].addIceCandidate(new RTCIceCandidate(video_message.candidate));
+        shareScreenRTCPeerConnectionInstanceList[now].addIceCandidate(new RTCIceCandidate(video_message.candidate));
       }
     });
 
     socket.on('student_to_teacher_video_call_request', async (video_message) => {
-      if(video_message.student_id) {
-        // if($("#" + video_message.student_id).length <= 0) {
-        //   createStudentVideoDiv(video_message.student_id);
-        // }
+      // if(video_message.student_id) {
+      //   // if($("#" + video_message.student_id).length <= 0) {
+      //   //   createStudentVideoDiv(video_message.student_id);
+      //   // }
 
-        // $(`#${video_message.student_id}_label`).text(video_message.student_id + ': ' + video_message.student_name);
+      //   // $(`#${video_message.student_id}_label`).text(video_message.student_id + ': ' + video_message.student_name);
 
-        // if(!videoCallLocalstream) {
-        //   videoCallLocalstream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
-        // }
+      //   // if(!videoCallLocalstream) {
+      //   //   videoCallLocalstream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
+      //   // }
 
-        // let video_call_video_element;
-        // video_call_video_element = document.querySelector(`[id='${video_message.student_id}_video_call_video']`);
+      //   // let video_call_video_element;
+      //   // video_call_video_element = document.querySelector(`[id='${video_message.student_id}_video_call_video']`);
 
-        // videoCallRTCPeerConnectionInstanceList[video_message.student_id] = new RTCPeerConnection(configuration);
-        // videoCallRTCPeerConnectionInstanceList[video_message.student_id].addStream(await navigator.mediaDevices.getUserMedia({ audio: true, video: true }).clone())
-        // videoCallRTCPeerConnectionInstanceList[video_message.student_id].onaddstream = (event) => {
-        //   if(!video_call_video_element.srcObject && event.stream){
-        //     console.log('video call on add stream ' + new Date().getTime());
-        //     console.log(event);
-        //     video_call_video_element.srcObject = event.stream;
-        //   }
-        //   video_call_video_element.addEventListener('click', async function() {
-        //       if (video_call_video_element.requestFullscreen) {
-        //         video_call_video_element.requestFullscreen();
-        //       } else if (video_call_video_element.webkitRequestFullscreen) { /* Safari */
-        //         video_call_video_element.webkitRequestFullscreen();
-        //       } else if (video_call_video_element.msRequestFullscreen) { /* IE11 */
-        //         video_call_video_element.msRequestFullscreen();
-        //       }
-        //   });
-        // }
+      //   // videoCallRTCPeerConnectionInstanceList[video_message.student_id] = new RTCPeerConnection(configuration);
+      //   // videoCallRTCPeerConnectionInstanceList[video_message.student_id].addStream(await navigator.mediaDevices.getUserMedia({ audio: true, video: true }).clone())
+      //   // videoCallRTCPeerConnectionInstanceList[video_message.student_id].onaddstream = (event) => {
+      //   //   if(!video_call_video_element.srcObject && event.stream){
+      //   //     console.log('video call on add stream ' + new Date().getTime());
+      //   //     console.log(event);
+      //   //     video_call_video_element.srcObject = event.stream;
+      //   //   }
+      //   //   video_call_video_element.addEventListener('click', async function() {
+      //   //       if (video_call_video_element.requestFullscreen) {
+      //   //         video_call_video_element.requestFullscreen();
+      //   //       } else if (video_call_video_element.webkitRequestFullscreen) { /* Safari */
+      //   //         video_call_video_element.webkitRequestFullscreen();
+      //   //       } else if (video_call_video_element.msRequestFullscreen) { /* IE11 */
+      //   //         video_call_video_element.msRequestFullscreen();
+      //   //       }
+      //   //   });
+      //   // }
       
-        // videoCallRTCPeerConnectionInstanceList[video_message.student_id].oniceconnectionstatechange = (evt) => {
-        //   console.log('====== 9 video call on ice connection state change ====== ' + new Date().getTime());
-        //   console.log('ICE 伺服器狀態變更 => ', evt.target.iceConnectionState);
-        //   if(evt.target.iceConnectionState == 'connected') {
-        //     console.log('學生: ', video_message.student_id, ', 分享視訊: ICE 伺服器成功連線');
-        //   }
-        // };
+      //   // videoCallRTCPeerConnectionInstanceList[video_message.student_id].oniceconnectionstatechange = (evt) => {
+      //   //   console.log('====== 9 video call on ice connection state change ====== ' + new Date().getTime());
+      //   //   console.log('ICE 伺服器狀態變更 => ', evt.target.iceConnectionState);
+      //   //   if(evt.target.iceConnectionState == 'connected') {
+      //   //     console.log('學生: ', video_message.student_id, ', 分享視訊: ICE 伺服器成功連線');
+      //   //   }
+      //   // };
 
-        // videoCallRTCPeerConnectionInstanceList[video_message.student_id].onicecandidate = ({ candidate }) => {
-        //   console.log('video call rtc peer connection: on ice candidate ' + new Date().getTime());
-        //   console.log(candidate);
-        //   if (!candidate) { return; }
-        //   socket.emit("teacher_to_student_video_call_request", { candidate: candidate });
-        // };
-        // desc 指的是 Offer 與 Answer
-        // currentRemoteDescription 代表的是最近一次連線成功的相關訊息
-      }
+      //   // videoCallRTCPeerConnectionInstanceList[video_message.student_id].onicecandidate = ({ candidate }) => {
+      //   //   console.log('video call rtc peer connection: on ice candidate ' + new Date().getTime());
+      //   //   console.log(candidate);
+      //   //   if (!candidate) { return; }
+      //   //   socket.emit("teacher_to_student_video_call_request", { candidate: candidate });
+      //   // };
+      //   // desc 指的是 Offer 與 Answer
+      //   // currentRemoteDescription 代表的是最近一次連線成功的相關訊息
+      // }
 
-      if (video_message.video_call_video && !videoCallRTCPeerConnectionInstanceList[video_message.student_id].currentRemoteDescription) {
-        $(`#${video_message.student_id}_label`).text(video_message.student_id + ': ' + video_message.student_name);
+      if (video_message.video_call_video && !videoCallRTCPeerConnectionInstanceList[now].currentRemoteDescription) {
+        $(`#${now}_label`).text(video_message.student_id + ': ' + video_message.student_name);
         try {
-          await videoCallRTCPeerConnectionInstanceList[video_message.student_id].setRemoteDescription(new RTCSessionDescription(video_message.video_call_video));
-          if (!videoCallRTCPeerConnectionInstanceList[video_message.student_id]) {
+          await videoCallRTCPeerConnectionInstanceList[now].setRemoteDescription(new RTCSessionDescription(video_message.video_call_video));
+          if (!videoCallRTCPeerConnectionInstanceList[now]) {
             console.log('尚未開啟視訊');
             return;
           }
           // 呼叫 peerConnect 內的 createOffer / createAnswer
-          videoCallOfferSdpDescription = await videoCallRTCPeerConnectionInstanceList[video_message.student_id][`createAnswer`](signalOption);
+          videoCallOfferSdpDescription = await videoCallRTCPeerConnectionInstanceList[now][`createAnswer`](signalOption);
           // 設定本地流配置
-          await videoCallRTCPeerConnectionInstanceList[video_message.student_id].setLocalDescription(videoCallOfferSdpDescription);
-          videoCallLocalDescription = videoCallRTCPeerConnectionInstanceList[video_message.student_id].localDescription;
+          await videoCallRTCPeerConnectionInstanceList[now].setLocalDescription(videoCallOfferSdpDescription);
+          videoCallLocalDescription = videoCallRTCPeerConnectionInstanceList[now].localDescription;
           socket.emit("teacher_to_student_video_call_request", {
             student_id: video_message.student_id, 
             student_name: video_message.student_name, 
@@ -290,22 +361,22 @@
       }
 
       if (video_message.candidate) {
-        videoCallRTCPeerConnectionInstanceList[video_message.student_id].addIceCandidate(new RTCIceCandidate(video_message.candidate));
+        videoCallRTCPeerConnectionInstanceList[now].addIceCandidate(new RTCIceCandidate(video_message.candidate));
       }
-      
+
     });
 
-    function createStudentVideoDiv(student_id) {
-      $("#student_video_list").append(`
-        <div id="${student_id}" width="45%" height="50%" style="display:inline-block">
-            <div><label id="${student_id}_label"></label></div>
-            <div id="${student_id}_video_list">
-              <video width="400px" height="500px" autoplay id="${student_id}_share_screen_video" playsinline></video>
-              <video width="400px" height="500px" autoplay id="${student_id}_video_call_video" playsinline></video> 
-            </div>
-        </div>
-      `);
-    }
+    // function createStudentVideoDiv(student_id) {
+    //   $("#student_video_list").append(`
+    //     <div id="${student_id}" width="45%" height="50%" style="display:inline-block">
+    //         <div><label id="${student_id}_label"></label></div>
+    //         <div id="${student_id}_video_list">
+    //           <video width="400px" height="500px" autoplay id="${student_id}_share_screen_video" playsinline></video>
+    //           <video width="400px" height="500px" autoplay id="${student_id}_video_call_video" playsinline></video> 
+    //         </div>
+    //     </div>
+    //   `);
+    // }
     
     function getId() {
       const queryString = window.location.search;
@@ -313,9 +384,12 @@
       return urlParams.get('id');
     }
 
-    initPeerConnection(410806253);
-    initPeerConnection(410806229);
-    initPeerConnection(410806213);
+    initPeerConnection(0);
+    initPeerConnection(1);
+    initPeerConnection(2);
+    initPeerConnection(3);
+    initPeerConnection(4);
+    initPeerConnection(5);
 
     socket.emit('joinRoom' , 'teacher_room_' + getId());
   </script>
