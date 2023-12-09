@@ -24,7 +24,8 @@
         urls: 'stun:stun.ideasip.com'
       }]
     };
-    let localstream;
+    let shareScreenLocalstream;
+    let videoCallLocalstream;
     let shareScreenRTCPeerConnectionInstanceList = [];
     let videoCallRTCPeerConnectionInstanceList = [];
 
@@ -51,15 +52,15 @@
 
         $(`#${video_message.student_id}_label`).text(video_message.student_id + ': ' + video_message.student_name);
         
-        if(!localstream) {
-          localstream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
+        if(!shareScreenLocalstream) {
+          shareScreenLocalstream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
         }
 
         let share_screen_video_element;
         share_screen_video_element = document.querySelector(`[id='${video_message.student_id}_share_screen_video']`);
 
         shareScreenRTCPeerConnectionInstanceList[video_message.student_id] = new RTCPeerConnection(configuration);
-        shareScreenRTCPeerConnectionInstanceList[video_message.student_id].addStream(localstream.clone())
+        shareScreenRTCPeerConnectionInstanceList[video_message.student_id].addStream(shareScreenLocalstream.clone())
         shareScreenRTCPeerConnectionInstanceList[video_message.student_id].onaddstream = (event) => {
           if(!share_screen_video_element.srcObject && event.stream){
             console.log('接收流並顯示於遠端分享桌面！', event);
@@ -128,15 +129,15 @@
 
         $(`#${video_message.student_id}_label`).text(video_message.student_id + ': ' + video_message.student_name);
 
-        if(!localstream) {
-          localstream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
+        if(!videoCallLocalstream) {
+          videoCallLocalstream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
         }
 
         let video_call_video_element;
         video_call_video_element = document.querySelector(`[id='${video_message.student_id}_video_call_video']`);
 
         videoCallRTCPeerConnectionInstanceList[video_message.student_id] = new RTCPeerConnection(configuration2);
-        videoCallRTCPeerConnectionInstanceList[video_message.student_id].addStream(localstream.clone())
+        videoCallRTCPeerConnectionInstanceList[video_message.student_id].addStream(videoCallLocalstream.clone())
         videoCallRTCPeerConnectionInstanceList[video_message.student_id].onaddstream = (event) => {
           if(!video_call_video_element.srcObject && event.stream){
             console.log('接收流並顯示於遠端視訊！', event);
