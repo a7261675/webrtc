@@ -21,6 +21,63 @@ var connection = mysql.createConnection({
 }); 
 connection.connect();
 
+app.get('/chinese_chess/1.png', function(req, res){
+  res.sendFile(__dirname + '/chinese_chess_pic/1.png');
+});
+
+app.get('/chinese_chess/2.png', function(req, res){
+  res.sendFile(__dirname + '/chinese_chess_pic/2.png');
+});
+
+app.get('/chinese_chess/3.png', function(req, res){
+  res.sendFile(__dirname + '/chinese_chess_pic/3.png');
+});
+
+app.get('/chinese_chess/4.png', function(req, res){
+  res.sendFile(__dirname + '/chinese_chess_pic/4.png');
+});
+
+app.get('/chinese_chess/5.png', function(req, res){
+  res.sendFile(__dirname + '/chinese_chess_pic/5.png');
+});
+
+app.get('/chinese_chess/6.png', function(req, res){
+  res.sendFile(__dirname + '/chinese_chess_pic/6.png');
+});
+
+app.get('/chinese_chess/7.png', function(req, res){
+  res.sendFile(__dirname + '/chinese_chess_pic/7.png');
+});
+
+app.get('/chinese_chess/8.png', function(req, res){
+  res.sendFile(__dirname + '/chinese_chess_pic/8.png');
+});
+
+app.get('/chinese_chess/9.png', function(req, res){
+  res.sendFile(__dirname + '/chinese_chess_pic/9.png');
+});
+
+app.get('/chinese_chess/10.png', function(req, res){
+  res.sendFile(__dirname + '/chinese_chess_pic/10.png');
+});
+
+app.get('/chinese_chess/11.png', function(req, res){
+  res.sendFile(__dirname + '/chinese_chess_pic/11.png');
+});
+
+app.get('/chinese_chess/12.png', function(req, res){
+  res.sendFile(__dirname + '/chinese_chess_pic/12.png');
+});
+
+app.get('/chinese_chess/13.png', function(req, res){
+  res.sendFile(__dirname + '/chinese_chess_pic/13.png');
+});
+
+app.get('/chinese_chess/14.png', function(req, res){
+  res.sendFile(__dirname + '/chinese_chess_pic/14.png');
+});
+
+
 app.get('/chinese_chess', function(req, res){
   res.sendFile(__dirname + '/chinese_chess.html');
 });
