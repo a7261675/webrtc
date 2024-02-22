@@ -21,6 +21,11 @@ var connection = mysql.createConnection({
 }); 
 connection.connect();
 
+app.get('/chinese_chess', function(req, res){
+  res.sendFile(__dirname + '/chinese_chess.html');
+});
+
+
 app.get('/login', function(req, res){
   res.sendFile(__dirname + '/login.html');
 });
