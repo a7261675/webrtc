@@ -42,11 +42,7 @@
       
       if (message.candidate) {
         // 新增對方 IP 候選位置
-        console.log('=================================== step 16 student get candidate =======================================');
-        console.log('student get candidate time: ' + new Date().getTime());
-        console.log('=================================== step 17 student add candidate =======================================');
-        console.log('student add candidate time: ' + new Date().getTime());
-        console.log('add candidate =>', message.candidate);
+        // console.log('student get candidate time: ' + new Date().getTime());
         rtcPeerConnectionInstance.addIceCandidate(new RTCIceCandidate(message.candidate));
       }
     });
@@ -79,22 +75,34 @@
       shareScreenVideo.srcObject = localShareScreenVideoStream;
       videoCallVideo.srcObject = localVideoCallVideoStream;
 
-      localShareScreenVideoStream.getTracks().forEach(track => {
-        rtcPeerConnectionInstance.addTrack(track, localShareScreenVideoStream);
-      });
+      const test1 = localShareScreenVideoStream.getVideoTracks()[0];
+      rtcPeerConnectionInstance.addTrack(test1, localShareScreenVideoStream);
 
-      localVideoCallVideoStream.getTracks().forEach(track => {
-        rtcPeerConnectionInstance.addTrack(track, localVideoCallVideoStream);
-      });
+      const test2 = localVideoCallVideoStream.getVideoTracks()[0];
+      rtcPeerConnectionInstance.addTrack(test2, localVideoCallVideoStream);
+      
 
-      console.log('==================================================== rtcPeerConnectionInstance ==================================================');
-      console.log(rtcPeerConnectionInstance);
-      console.log('==================================================== rtcPeerConnectionInstance ==================================================');
+      const senders = rtcPeerConnectionInstance.getSenders();
+
+      // 遍历发送器数组，检查每个发送器的轨道信息
+      senders.forEach(sender => {
+        // 获取发送器的轨道信息
+        const track = sender.track;
+
+        console.log('Track :', track);
+        if (track) {
+          // 如果轨道存在，则打印轨道的种类和标识符
+          console.log(`Track kind: ${track.kind}, track ID: ${track.id}`);
+        } else {
+          // 如果轨道不存在，则打印未找到轨道的消息
+          console.log('No track found');
+        }
+      });
 
       // 找尋到 ICE 候選位置後，送去 Server 與另一位配對
       rtcPeerConnectionInstance.onicecandidate = ({ candidate }) => {
         if (!candidate) { return; }
-        console.log('onIceCandidate => ', candidate);
+        // console.log('onIceCandidate => ', candidate);
         socket.emit("studentSendToTeacherSignaling", { candidate: candidate });
       };
 
@@ -102,9 +110,6 @@
         console.log('ICE 伺服器狀態變更 => ', evt.target.iceConnectionState);
       };
 
-      rtcPeerConnectionInstance.onaddstream = (event) => {
-        console.log('接收流並顯示於遠端分享桌面！', event);
-      }
       socket.emit('joinRoom' , 'teacher_room');
     }
 

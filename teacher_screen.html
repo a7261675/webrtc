@@ -7,19 +7,19 @@
         <video width="500" height="500" autoplay
           id="remoteShareScreenVideo_0" playsinline></video>
         <video width="500" height="500" autoplay
-          id="rmeoteVideoCallVideo_0" playsinline></video>
+          id="remoteVideoCallVideo_0" playsinline></video>
           
           <label id = "studentName_1"></label>
         <video width="500" height="500" autoplay
           id="remoteShareScreenVideo_1" playsinline></video>
           <video width="500" height="500" autoplay
-          id="rmeoteVideoCallVideo_1" playsinline></video>
+          id="remoteVideoCallVideo_1" playsinline></video>
           
           <label id = "studentName_2"></label>
         <video width="500" height="500" autoplay
           id="remoteShareScreenVideo_2" playsinline></video>
           <video width="500" height="500" autoplay
-          id="rmeoteVideoCallVideo_2" playsinline></video>
+          id="remoteVideoCallVideo_2" playsinline></video>
     </div>
   </body>
   <script src="/socket.io/socket.io.js"></script>
@@ -62,11 +62,6 @@
       }
       
       if (message.candidate) {
-        // 新增對方 IP 候選位置
-        console.log('=================================== step 13 teacher get candidate =======================================');
-        console.log('teacher get candidate time: ' + new Date().getTime());
-        console.log('now: ' + now);
-        console.log('add candidate =>', message.candidate);
         rtcPeerConnectionInstanceList[now].addIceCandidate(new RTCIceCandidate(message.candidate));
       }
     });
@@ -82,61 +77,40 @@
       rtcPeerConnectionInstanceList[i].addStream(localstream.clone())
       rtcPeerConnectionInstanceList[i].onicecandidate = ({ candidate }) => {
         if (!candidate) { return; }
-        console.log('onIceCandidate => ', candidate);
         socket.emit("teacherSendToStudentSignaling", { candidate: candidate });
       };
+
       rtcPeerConnectionInstanceList[i].oniceconnectionstatechange = (evt) => {
-        console.log('ICE 伺服器狀態變更 => ', evt.target.iceConnectionState);
-        console.log('狀態變更時間: ' + new Date().getTime());
         if (evt.target.iceConnectionState == 'connected') {
           console.log('連線完成時間: ' + new Date().getTime());
           console.log('now: ' + now);
           now++;
         }
       };
-      rtcPeerConnectionInstanceList[i].onaddstream = (event) => {
-        var remoteShareScreenVideo = document.querySelector(`#remoteShareScreenVideo_${i}`); 
-        var remoteVideoCallVideo = document.querySelector(`#remoteVideoCallVideo_${i}`); 
-        console.log('==================================================== event ==================================================');
-        console.log(event);
-        console.log('==================================================== event ==================================================');
-        // const remoteStreams = event.streams;
-        event.streams.forEach(stream => {
-          stream.getTracks().forEach(track => {
-            if(track.kind == 'video') {
-              if(track.label.includes('screen')) {
-                if(!remoteShareScreenVideo.srcObject){
-                  remoteShareScreenVideo.srcObject = stream;
-                  console.log('接收流並顯示於遠端分享桌面！', event);
-                }
-                remoteShareScreenVideo.addEventListener('click', async function() {
-                    if (remoteShareScreenVideo.requestFullscreen) {
-                      remoteShareScreenVideo.requestFullscreen();
-                    } else if (remoteShareScreenVideo.webkitRequestFullscreen) { /* Safari */
-                      remoteShareScreenVideo.webkitRequestFullscreen();
-                    } else if (remoteShareScreenVideo.msRequestFullscreen) { /* IE11 */
-                      remoteShareScreenVideo.msRequestFullscreen();
-                    }
-                });
-              } else {
-                if(!remoteVideoCallVideo.srcObject){
-                  remoteVideoCallVideo.srcObject = stream;
-                  console.log('接收流並顯示於遠端分享桌面！', event);
-                }
-                remoteVideoCallVideo.addEventListener('click', async function() {
-                    if (remoteVideoCallVideo.requestFullscreen) {
-                      remoteVideoCallVideo.requestFullscreen();
-                    } else if (remoteVideoCallVideo.webkitRequestFullscreen) { /* Safari */
-                      remoteVideoCallVideo.webkitRequestFullscreen();
-                    } else if (remoteVideoCallVideo.msRequestFullscreen) { /* IE11 */
-                      remoteVideoCallVideo.msRequestFullscreen();
-                    }
-                });
+      
+      rtcPeerConnectionInstanceList[i].ontrack = (event) => {
+        if(event.track.kind == 'video') {
+          var video_element;
+          if(event.transceiver.mid == 0) {
+            video_element = document.querySelector(`[id='remoteShareScreenVideo_${i}']`); 
+          } else if(event.transceiver.mid == 1) {
+            video_element = document.querySelector(`[id='remoteVideoCallVideo_${i}']`); 
+          }
 
-              }
+          video_element.srcObject = new MediaStream([event.track]);
+          if(!video_element.srcObject){
+            console.log('接收流並顯示於遠端分享桌面！', event);
+          }
+          video_element.addEventListener('click', async function() {
+            if (video_element.requestFullscreen) {
+              video_element.requestFullscreen();
+            } else if (video_element.webkitRequestFullscreen) { /* Safari */
+              video_element.webkitRequestFullscreen();
+            } else if (video_element.msRequestFullscreen) { /* IE11 */
+              video_element.msRequestFullscreen();
             }
-          })
-        })
+          });
+        }
       }
     }
 
