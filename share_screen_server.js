@@ -1,5 +1,5 @@
 // Node.js
-const port = process.env.PORT || 7000;
+const port = process.env.PORT || 3000;
 var bodyParser = require('body-parser');
 var app = require('express')();
 app.use(bodyParser.json());
@@ -25,7 +25,10 @@ app.get('/login', function(req, res){
 });
 
 app.get('/test_room_list_page/:student_id', function(req, res){
-  res.redirect('/test_room_list_page/?id=' + req.params.student_id);
+  console.log('testetgertsrgtsghesrgherh');
+  console.log(req.params.student_id);
+  console.log(__dirname);
+  res.redirect('./?id=' + req.params.student_id);
 });
 
 app.get('/test_room_list_page', function(req, res){

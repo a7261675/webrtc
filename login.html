@@ -48,7 +48,7 @@
           student.name = $('input[name=student_name_input]').val();
           $.ajax({
               data: {student_data: student},
-              url: '/authenticate_student_data', 
+              url: './authenticate_student_data', 
               dataType: 'json',
               method: 'post',
               cache: false,
@@ -60,7 +60,8 @@
             } else {
               student_data_in_database = data.result[0];
               if(student_data_in_database.id == student.id && student_data_in_database.name == student.name) {
-                document.location.href="test_room_list_page/" + student.id;
+                document.location.href = "test_room_list_page/" + student.id;
+                // document.location.href = window.location.pathname.replace('/login', '/test_room_list_page/') + student.id;
               }
             }
             console.log("login success");

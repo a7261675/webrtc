@@ -58,7 +58,7 @@
 
         $.ajax({
             data: {test_room_data: test_room},
-            url: '/add_test_room', 
+            url: './add_test_room', 
             dataType: 'json',
             method: 'post',
             cache: false,
@@ -91,7 +91,7 @@
 
     function delete_test_room(i) {
         $.ajax({
-            url: '/delete_test_room/' + i, 
+            url: './delete_test_room/' + i, 
             type: 'delete',
             contentType: 'application/json'
         })
@@ -109,7 +109,7 @@
 
     function get_test_room_list() {
       $.ajax({
-          url: '/get_test_room_list', 
+          url: './get_test_room_list', 
           type: 'get',
           contentType: 'application/json'
       })
@@ -139,7 +139,7 @@
 
     function get_student_list() {
         $.ajax({
-            url: '/get_student_data', 
+            url: './get_student_data', 
             type: 'get',
             contentType: 'application/json'
         })
