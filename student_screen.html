@@ -3,22 +3,16 @@
   </head>
   <body>
     <div>
-      <label id="student_id_label">學號</label>
-        <input type="text" name="student_id_input" id="student_id_input" placeholder="請輸入學號">
-        <label id="student_name_label">學生姓名</label>
-        <input type="text" name="student_name_input" id="student_name_input" placeholder="請輸入學生姓名">
-        <button id="authenticate_student_btn">驗證學生身份</button>
-        <p id="authenticate_student_error_message"></p>
-    </div>
-    <div>
-        <video width="1000" height="1000" autoplay
-          id="share_screen_video" muted playsinline></video>
-        <video width="1000" height="1000" autoplay
-          id="video_call_video" muted playsinline></video>
-
-          <button id="send_stream_request_btn">開始串流</button>
-          <button id="stop_stream_request_btn">停止串流</button>
-    </div>
+      <video width="800" height="800" autoplay
+        id="share_screen_video" muted playsinline></video>
+      <video width="800" height="800" autoplay
+        id="video_call_video" muted playsinline></video>
+  </div>
+  <div>
+      <button id="send_stream_request_btn">開始串流</button>
+      <button id="stop_stream_request_btn">停止串流</button>
+      <div id="download_button"></div>
+  </div>
   </body>
   <script src="/socket.io/socket.io.js"></script>
   <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
@@ -28,7 +22,7 @@
     let share_screen_RTC_peer_connection_instance;
     let video_call_RTC_peer_connection_instance;
     // 連線到 Server Port
-    const socket = io('http://localhost:3000');
+    const socket = io('http://localhost:3000/');
     const configuration = {
       iceServers: [{
         urls: 'stun:stun.l.google.com:19302' // Google's public STUN server

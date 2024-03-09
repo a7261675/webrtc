@@ -25,9 +25,6 @@ app.get('/login', function(req, res){
 });
 
 app.get('/test_room_list_page/:student_id', function(req, res){
-  console.log('testetgertsrgtsghesrgherh');
-  console.log(req.params.student_id);
-  console.log(__dirname);
   res.redirect('./?id=' + req.params.student_id);
 });
 
@@ -36,7 +33,7 @@ app.get('/test_room_list_page', function(req, res){
 });
 
 app.get('/student_screen/:test_room_id', function(req, res){
-  res.redirect('/student_screen/?test_room_id=' + req.params.test_room_id);
+  res.redirect('./?test_room_id=' + req.params.test_room_id);
 });
 
 app.get('/student_screen', function(req, res){
@@ -48,7 +45,7 @@ app.get('/teacher_page', function(req, res){
 });
 
 app.get('/teacher_screen/:test_room_id', function(req, res){
-  res.redirect('/teacher_screen/?id=' + req.params.test_room_id);
+  res.redirect('./?id=' + req.params.test_room_id);
 });
 
 app.get('/teacher_screen', function(req, res){
@@ -118,9 +115,10 @@ app.post('/add_test_room', function(req, res){
   name = req.body.test_room_data.name;
   teacher = req.body.test_room_data.teacher;
   subject = req.body.test_room_data.subject;
-  time = req.body.test_room_data.test_time;
+  start_time = req.body.test_room_data.test_start_time;
+  end_time = req.body.test_room_data.test_end_time;
   student_list = req.body.test_room_data.student_list;
-  var sql = `INSERT INTO test_room (name, teacher, subject, time, student_list) VALUES ('${name}','${teacher}','${subject}', '${time}', '${student_list}');`;
+  var sql = `INSERT INTO test_room (name, teacher, subject, start_time, end_time, student_list) VALUES ('${name}','${teacher}','${subject}', '${start_time}', '${end_time}', '${student_list}');`;
   console.log(sql);
   connection.query(sql,function (err, result) {
       if(err){
