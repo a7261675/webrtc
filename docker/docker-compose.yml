@@ -40,3 +40,15 @@ services:
       - backend
     volumes:
       - ${MYSQL_DATA}:/var/lib/mysql
+  
+  nodejs:
+    build:
+      context: ./nodejs
+      dockerfile: Dockerfile
+    container_name: nodejs
+    ports:
+      - 3000:3000
+    volumes:
+      - ../invigilation_system/:/app
+    networks:
+      - backend

@@ -2,6 +2,7 @@
 const port = process.env.PORT || 3000;
 var bodyParser = require('body-parser');
 var app = require('express')();
+const cors = require('cors');
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({
   extended: true
@@ -19,6 +20,12 @@ var connection = mysql.createConnection({
   timezone: 'Asia/Taipei'
 }); 
 connection.connect();
+
+app.use(cors({
+  origin: 'http://webrtc.test', // 允許的來源
+  methods: ['GET', 'POST'], // 允許的 HTTP 方法
+  allowedHeaders: ['Content-Type', 'Authorization'] // 允許的標頭
+}));
 
 app.get('/login', function(req, res){
   res.sendFile(__dirname + '/login.html');
@@ -160,7 +167,14 @@ app.delete('/delete_test_room/:test_room_id', function(req, res){
 room_list = new Array();
 
 // Socket.io
-const io = require('socket.io')(server);
+const io = require('socket.io')(server, {
+  cors: {
+    origin: "http://webrtc.test",
+    methods: ["GET", "POST"]
+  }
+});
+
+// app.use('/custom-path', require('express').static(__dirname + '/node_modules/socket.io/client-dist'));
 
 function findNowRoom(client) {
   return Array.from(client.rooms).find(item => {

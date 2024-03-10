@@ -14,7 +14,8 @@
       <div id="download_button"></div>
   </div>
   </body>
-  <script src="/socket.io/socket.io.js"></script>
+  <script src="../socket.io/socket.io.js"></script>
+  <!-- <script src="https://cdn.socket.io/4.7.4/socket.io.min.js" integrity="sha384-Gr6Lu2Ajx28mzwyVR8CFkULdCU7kMlZ9UthllibdOSo6qAiN+yXNHqtgdTvFXMT4" crossorigin="anonymous"></script> -->
   <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
   <script>
     const shareScreenVideo = document.querySelector('#share_screen_video');
@@ -22,7 +23,7 @@
     let share_screen_RTC_peer_connection_instance;
     let video_call_RTC_peer_connection_instance;
     // 連線到 Server Port
-    const socket = io('http://localhost:3000/');
+    const socket = io('http://localhost:3000');
     const configuration = {
       iceServers: [{
         urls: 'stun:stun.l.google.com:19302' // Google's public STUN server
@@ -115,10 +116,9 @@
       try {
         var share_screen_video = await createPeerConnectionInstance('share_screen');
         var video_call_video = await createPeerConnectionInstance('video_call');
-
         socket.emit("student_to_teacher", {
-          student_id: $('input[name=student_id_input]').val(), 
-          student_name: $('input[name=student_name_input]').val(), 
+          student_id: '102060024', 
+          student_name: 'testtest', 
           share_screen_video: share_screen_video.localDescription,
           video_call_video: video_call_video.localDescription,
         });

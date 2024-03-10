@@ -5,7 +5,7 @@
     <div id="student_video_list">
     </div>
   </body>
-  <script src="/socket.io/socket.io.js"></script>
+  <script src="../socket.io/socket.io.js"></script>
   <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
   <script>
     // 連線到 Server Port
@@ -21,6 +21,8 @@
     };
     // Client
     socket.on('student_to_teacher', async (video_message) => {
+      console.log('============================= testgregeg =======================');
+      console.log(video_message);
       if(video_message.student_id) {
         if($("#" + video_message.student_id).length <= 0) {
           createStudentVideoDiv(video_message.student_id);
